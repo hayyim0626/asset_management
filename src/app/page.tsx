@@ -8,8 +8,6 @@ export default async function Home() {
     data: { session }
   } = await supabase.auth.getSession();
 
-  console.log("세션이당", session);
-
   if (!session) {
     // 로그인 안 된 상태 → 버튼 보여주기
     return (

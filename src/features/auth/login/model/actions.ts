@@ -33,8 +33,6 @@ export async function loginWithGoogle() {
     }
   });
 
-  console.log("DATAAA", data);
-
   if (error) {
     console.error("Google login error:", error.message);
     throw new Error("Google 로그인 실패");

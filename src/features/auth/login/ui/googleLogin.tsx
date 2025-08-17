@@ -5,8 +5,7 @@ import { loginWithGoogle } from "@/features/auth/login/model/actions";
 export function GoogleLoginButton() {
   const handleLogin = async () => {
     const url = await loginWithGoogle();
-    console.log("받아온 url", url);
-    if (url) window.location.href = url; // 실제 이동은 클라이언트에서
+    if (url) window.location.href = url;
   };
 
   return (
