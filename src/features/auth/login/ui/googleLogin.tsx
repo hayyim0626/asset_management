@@ -1,11 +1,12 @@
 "use client";
 
-import { loginWithGoogle } from "@/features/auth/login/model/actions";
+import { signInWithOAuth } from "@/shared/api/auth/functions";
 
 export function GoogleLoginButton() {
   const handleLogin = async () => {
-    const url = await loginWithGoogle();
-    if (url) window.location.href = url;
+    const { data } = await signInWithOAuth("google");
+
+    if (data.url) window.location.href = data.url;
   };
 
   return (

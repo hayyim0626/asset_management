@@ -2,24 +2,67 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@/shared/api/supabase/client";
 
 export default function AuthCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    const supabase = createBrowserClient();
+    const handleAuthCallback = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const searchParams = new URLSearchParams(window.location.search);
 
-    // Supabase가 리다이렉트 후 쿠키를 갱신하도록 trigger
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        console.log("로그인 성공:", session.user);
-      } else {
-        console.log("세션 없음, 로그인 실패");
+      const error = searchParams.get("error") || hashParams.get("error");
+      if (error) {
+        console.error("OAuth error:", error);
+        router.replace("/login");
+        return;
       }
-      router.replace("/"); // 홈으로 이동
-    });
+
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+      const expiresIn = hashParams.get("expires_in");
+
+      if (accessToken) {
+        try {
+          // API Route
+          const response = await fetch("/api/auth", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              accessToken,
+              refreshToken,
+              expiresIn: expiresIn ? parseInt(expiresIn) : 3600
+            })
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Token save failed");
+          }
+
+          router.replace("/");
+        } catch (error) {
+          console.error("토큰 저장 실패:", error);
+          alert("로그인 처리 중 오류가 발생했습니다.");
+          router.replace("/login?error=token_save_failed");
+        }
+      } else {
+        console.error("No access token found");
+        router.replace("/login?error=no_token");
+      }
+    };
+
+    handleAuthCallback();
   }, [router]);
 
-  return <p>로그인 처리 중...</p>;
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+        <p className="text-gray-600">로그인 처리 중...</p>
+      </div>
+    </div>
+  );
 }
