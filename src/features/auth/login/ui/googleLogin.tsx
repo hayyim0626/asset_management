@@ -12,9 +12,9 @@ export function GoogleLoginButton() {
   return (
     <button
       onClick={handleLogin}
-      className="px-4 py-2 bg-blue-500 text-white rounded"
+      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer"
     >
-      Sign in with Google
+      구글 로그인
     </button>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Navbar } from "@/widgets";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "나의 첫 번째 자산관리 앱",
-  description: "Supabase와 Next.js로 만들어보는 자산관리 앱"
+  title: "Finote - 나의 첫 번째 자산관리 앱노트",
+  description: "Supabase와 Next.js로 만들어보는 자산관리 앱노트"
 };
 
 export default function RootLayout({
@@ -25,9 +26,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased pt-[52px]`}
       >
-        {children}
+        <Navbar />
+        <div className="">{children}</div>
       </body>
     </html>
   );

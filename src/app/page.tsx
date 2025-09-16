@@ -17,7 +17,7 @@ export default async function Home() {
       <p className="text-lg">안녕하세요, {email}님 👋</p>
       <button
         onClick={signOut}
-        className="px-4 py-2 bg-gray-700 text-white rounded"
+        className="px-4 py-2 bg-gray-700 text-white rounded cursor-pointer"
       >
         로그아웃
       </button>
