@@ -82,49 +82,10 @@ export const refreshAccessToken = async () => {
 };
 
 export const getUser = async () => {
-  const { getAccessToken, setUserCookie } = await cookieUtils();
+  const { getAccessToken, getUserFromCookie } = await cookieUtils();
   const accessToken = getAccessToken();
   if (!accessToken) {
     return { error: { message: "No access token" }, data: { user: null } };
   }
-  try {
-    const response = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        apikey: env.SUPABASE_ANON_KEY
-      }
-    });
-    if (!response.ok) {
-      const refreshResult = await refreshAccessToken();
-      if (refreshResult.error) {
-        return {
-          error: { message: "Authentication failed" },
-          data: { user: null }
-        };
-      }
-
-      const newAccessToken = getAccessToken();
-      const retryResponse = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
-        headers: {
-          Authorization: `Bearer ${newAccessToken}`,
-          apikey: env.SUPABASE_ANON_KEY
-        }
-      });
-
-      if (!retryResponse.ok) {
-        return {
-          error: { message: "Authentication failed" },
-          data: { user: null }
-        };
-      }
-
-      const userData = await retryResponse.json();
-      setUserCookie(userData, 3600);
-      return { error: null, data: { user: userData } };
-    }
-    const userData = await response.json();
-    return { error: null, data: { user: userData } };
-  } catch (error) {
-    return { error: { message: "Network error" }, data: { user: null } };
-  }
+  return getUserFromCookie();
 };

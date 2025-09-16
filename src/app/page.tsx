@@ -2,9 +2,9 @@ import { GoogleLoginButton } from "@/features/auth/login/ui/googleLogin";
 import { getUser, signOut } from "@/shared/api/auth/functions";
 
 export default async function Home() {
-  const { data, error } = await getUser();
+  const { email, name, error } = await getUser();
 
-  if (error || !data.user) {
+  if (error || !name) {
     return (
       <div className="flex justify-center items-center h-screen">
         <GoogleLoginButton />
@@ -14,7 +14,7 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col justify-center items-center h-screen gap-4">
-      <p className="text-lg">안녕하세요, {data.user.email}님 👋</p>
+      <p className="text-lg">안녕하세요, {email}님 👋</p>
       <button
         onClick={signOut}
         className="px-4 py-2 bg-gray-700 text-white rounded"
