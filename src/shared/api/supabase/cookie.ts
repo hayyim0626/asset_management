@@ -41,7 +41,7 @@ export const cookieUtils = async () => {
       "sb-user",
       JSON.stringify({ email: user.email, name: user.user_metadata.full_name }),
       {
-        httpOnly: true,
+        httpOnly: false,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         maxAge: expiresIn || 3600,
