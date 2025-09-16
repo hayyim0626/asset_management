@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { SupabaseUser } from "./types";
 
 export const cookieUtils = async () => {
   const cookieStore = await cookies();
@@ -35,7 +36,7 @@ export const cookieUtils = async () => {
     cookieStore.delete("sb-user");
   };
 
-  const setUserCookie = (user: any, expiresIn?: number) => {
+  const setUserCookie = (user: SupabaseUser, expiresIn?: number) => {
     cookieStore.set(
       "sb-user",
       JSON.stringify({ email: user.email, name: user.user_metadata.full_name }),
