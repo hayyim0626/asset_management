@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { GoogleLoginButton } from "@/features/auth/login/ui/googleLogin";
 import { signOut } from "@/shared/api/auth/functions";
@@ -43,15 +44,13 @@ export function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-200">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-[52px]">
-          <div className="flex-shrink-0">
-            <Link href="/" className="text-xl font-bold text-gray-900">
-              MyApp
-            </Link>
-          </div>
-
+          <Link href="/" className="flex gap-2 items-center">
+            <Image src={"/icon.png"} alt="logo" width={32} height={32} />
+            <Image src={"/logo.png"} alt="logo" width={80} height={20} />
+          </Link>
           <div className="flex items-center space-x-4">
             {isLoading ? (
               <div className="flex items-center space-x-4">
