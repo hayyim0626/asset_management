@@ -26,12 +26,15 @@ export default function LoginStatus(props: PropType) {
           <div className="w-20 h-6 bg-gray-300 rounded animate-pulse"></div>
         </div>
       ) : user ? (
-        <button
-          onClick={signOut}
-          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer"
-        >
-          로그아웃
-        </button>
+        <div className="flex items-center gap-4 text-sm text-white font-bold">
+          <p>안녕하세요, {user}님</p>
+          <button
+            onClick={signOut}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer"
+          >
+            로그아웃
+          </button>
+        </div>
       ) : (
         <GoogleLoginButton />
       )}

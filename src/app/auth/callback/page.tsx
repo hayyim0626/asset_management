@@ -42,8 +42,7 @@ export default function AuthCallback() {
             throw new Error(errorData.error || "Token save failed");
           }
 
-          router.replace("/");
-          router.refresh();
+          window.location.href = "/";
         } catch (error) {
           console.error("토큰 저장 실패:", error);
           alert("로그인 처리 중 오류가 발생했습니다.");
