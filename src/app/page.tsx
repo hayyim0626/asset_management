@@ -1,15 +1,11 @@
-import { GoogleLoginButton } from "@/features/auth/login/ui/googleLogin";
 import { getUser, signOut } from "@/shared/api/auth/functions";
+import { LandingPage } from "./entities/home/ui";
 
 export default async function Home() {
   const { email, name, error } = await getUser();
 
   if (error || !name) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <GoogleLoginButton />
-      </div>
-    );
+    return <LandingPage />;
   }
 
   return (
