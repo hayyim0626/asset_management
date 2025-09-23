@@ -6,10 +6,13 @@ interface PropType {
 }
 
 export async function Dashboard({ name }: PropType) {
-  const data = await fetch(`${env.NEXT_PUBLIC_APP_URL}/api/coin/price`);
+  const data = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/price`, {
+    method: "POST",
+    headers: {
+      apikey: env.SUPABASE_ANON_KEY
+    }
+  });
   const res = await data.json();
-
-  console.log("RES", name);
 
   const myAssets = {
     totalValue: 1250000,
@@ -159,20 +162,20 @@ export async function Dashboard({ name }: PropType) {
           현재 코인 가격
         </h2>
 
-        {res.data && Object.keys(res.data).length > 0 ? (
+        {res.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(res.data).map(([symbol, coin]: [string, any]) => (
+            {res.map((coin) => (
               <div
-                key={symbol}
+                key={coin.symbol}
                 className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-4 text-center border border-slate-700/50"
               >
                 <h3 className="font-semibold text-white">{coin.name}</h3>
-                <p className="text-sm text-slate-400">{symbol}</p>
+                <p className="text-sm text-slate-400">{coin.symbol}</p>
                 <p className="text-lg font-bold text-blue-400 mt-2">
                   ${coin.price.toLocaleString()}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  {new Date(coin.updatedAt).toLocaleTimeString()}
+                  Last Update: {new Date(coin.updated_at).toLocaleTimeString()}
                 </p>
               </div>
             ))}
