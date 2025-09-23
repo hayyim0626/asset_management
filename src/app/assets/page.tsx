@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatKrw } from "@/shared/lib/functions";
 
 const PlusIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg
@@ -262,10 +263,6 @@ export default function AssetsPage() {
     }
   };
 
-  const formatKoreanWon = (amount: number) => {
-    return new Intl.NumberFormat("ko-KR").format(amount) + "원";
-  };
-
   const openModal = (assetType: "crypto" | "stocks" | "cash" | null = null) => {
     setSelectedAssetType(assetType);
     setIsModalOpen(true);
@@ -292,7 +289,7 @@ export default function AssetsPage() {
         <div>
           <h3 className="text-lg font-semibold text-white">{title}</h3>
           <p className="text-2xl font-bold text-blue-400 mt-1">
-            {formatKoreanWon(totalValue)}
+            {formatKrw(totalValue)}
           </p>
         </div>
         <button
@@ -326,13 +323,13 @@ export default function AssetsPage() {
             </div>
             <div className="text-right">
               <p className="text-white font-semibold">
-                {formatKoreanWon(asset.value)}
+                {formatKrw(asset.value)}
               </p>
               {type !== "cash" && (
                 <p className="text-slate-400 text-sm">
                   {type === "crypto"
-                    ? `${formatKoreanWon(asset.currentPrice)}/개`
-                    : `${formatKoreanWon(asset.currentPrice)}/주`}
+                    ? `${formatKrw(asset.currentPrice)}/개`
+                    : `${formatKrw(asset.currentPrice)}/주`}
                 </p>
               )}
             </div>
@@ -380,25 +377,25 @@ export default function AssetsPage() {
                 총 자산 가치
               </p>
               <p className="text-4xl font-bold text-white mb-4">
-                {formatKoreanWon(userAssets.totalValue)}
+                {formatKrw(userAssets.totalValue)}
               </p>
               <div className="flex justify-center space-x-8 text-sm">
                 <div className="text-center">
                   <p className="text-slate-400">코인</p>
                   <p className="text-white font-semibold">
-                    {formatKoreanWon(userAssets.crypto.totalValue)}
+                    {formatKrw(userAssets.crypto.totalValue)}
                   </p>
                 </div>
                 <div className="text-center">
                   <p className="text-slate-400">주식</p>
                   <p className="text-white font-semibold">
-                    {formatKoreanWon(userAssets.stocks.totalValue)}
+                    {formatKrw(userAssets.stocks.totalValue)}
                   </p>
                 </div>
                 <div className="text-center">
                   <p className="text-slate-400">현금</p>
                   <p className="text-white font-semibold">
-                    {formatKoreanWon(userAssets.cash.totalValue)}
+                    {formatKrw(userAssets.cash.totalValue)}
                   </p>
                 </div>
               </div>

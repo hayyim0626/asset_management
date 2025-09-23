@@ -1,5 +1,6 @@
 import { env } from "@/shared/config/env";
 import Link from "next/link";
+import { formatKrw } from "@/shared/lib/functions";
 
 interface PropType {
   name: string;
@@ -32,10 +33,6 @@ export async function Dashboard({ name }: PropType) {
     ]
   };
 
-  const formatKoreanWon = (amount: number) => {
-    return new Intl.NumberFormat("ko-KR").format(amount) + "원";
-  };
-
   return (
     <div className="max-w-7xl sm:px-6 lg:p-8 mx-auto space-y-8">
       <div className="mb-8">
@@ -62,7 +59,7 @@ export async function Dashboard({ name }: PropType) {
             <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg p-4 border border-blue-500/30">
               <p className="text-sm text-blue-300 font-medium">총 자산 가치</p>
               <p className="text-2xl font-bold text-white">
-                {formatKoreanWon(myAssets.totalValue)}
+                {formatKrw(myAssets.totalValue)}
               </p>
             </div>
 
@@ -87,7 +84,7 @@ export async function Dashboard({ name }: PropType) {
                     </div>
                   </div>
                   <p className="text-sm font-semibold text-white">
-                    {formatKoreanWon(coin.value)}
+                    {formatKrw(coin.value)}
                   </p>
                 </div>
               ))}
@@ -120,7 +117,7 @@ export async function Dashboard({ name }: PropType) {
                 총 소비 금액
               </p>
               <p className="text-2xl font-bold text-white">
-                {formatKoreanWon(monthlyExpenses.totalAmount)}
+                {formatKrw(monthlyExpenses.totalAmount)}
               </p>
             </div>
 
@@ -140,7 +137,7 @@ export async function Dashboard({ name }: PropType) {
                     </p>
                   </div>
                   <p className="text-sm font-semibold text-white">
-                    {formatKoreanWon(category.amount)}
+                    {formatKrw(category.amount)}
                   </p>
                 </div>
               ))}
