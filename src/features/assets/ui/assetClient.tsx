@@ -1,22 +1,21 @@
 "use client";
 
-import React, { useState, useActionState } from "react";
+import React, { useState, useActionState, useEffect } from "react";
 import { AssetSection } from "./assetSection";
 import { Modal } from "@/shared/ui";
 import { AssetType } from "@/entities/assets/api/types";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
 import { formatKrw } from "@/shared/lib/functions";
 
-interface FormState {
+export interface FormState {
   success: boolean;
   error: string | null;
-  data: any;
   message: string | null;
 }
 
 interface PropType {
   handleSubmit: (
-    prevState: FormState | null,
+    prevState: FormState,
     formData: FormData
   ) => Promise<FormState>;
   data: AssetType;
@@ -45,7 +44,17 @@ export function AssetClient({ handleSubmit, data }: PropType) {
     "crypto" | "stocks" | "cash" | null
   >(null);
 
-  const [_, formAction, isPending] = useActionState(handleSubmit, null);
+  const [state, formAction, isPending] = useActionState(handleSubmit, {
+    success: false,
+    error: null,
+    message: null
+  });
+
+  useEffect(() => {
+    if (state.success) {
+      closeModal();
+    }
+  }, [state.success]);
 
   const openModal = (assetType: "crypto" | "stocks" | "cash" | null = null) => {
     setAssetType(assetType);

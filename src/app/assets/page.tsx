@@ -1,29 +1,39 @@
+import { revalidatePath } from "next/cache";
 import { AssetClient } from "@/features/assets/ui";
+import { addAsset } from "@/features/assets/api";
 import { getAsset } from "@/entities/assets/api";
 import { cookieUtils } from "@/shared/api/supabase/cookie";
-
-interface FormState {
-  success: boolean;
-  error: string | null;
-  data: any;
-  message: string | null;
-}
+import type { FormState } from "@/features/assets/ui/assetClient";
 
 export default async function AssetsPage() {
   const { getAccessToken } = await cookieUtils();
-  const res = await getAsset(getAccessToken() as string);
+  const token = getAccessToken() as string;
+  const res = await getAsset(token);
 
-  const handleSubmit = async (prev: FormState, formData: FormData) => {
+  const handleSubmit = async (
+    prevState: FormState,
+    formData: FormData
+  ): Promise<FormState> => {
     "use server";
+    const res = await addAsset(
+      {
+        assetType: formData.get("assetType") as string,
+        symbol: formData.get("symbol") as string,
+        amount: Number(formData.get("amount")),
+        averagePrice: Number(formData.get("averagePrice"))
+      },
+      token
+    );
 
-    const data = {
-      assetType: formData.get("assetType"),
-      symbol: formData.get("symbol"),
-      amount: formData.get("amount"),
-      averagePrice: formData.get("averagePrice")
+    if (res.success) {
+      revalidatePath("/assets");
+    }
+
+    return {
+      success: true,
+      error: null,
+      message: "자산이 성공적으로 추가되었습니다."
     };
-    console.log(data);
-    return "";
   };
 
   return (
