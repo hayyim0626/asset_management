@@ -1,6 +1,7 @@
 "use server";
 
 import { env } from "@/shared/config/env";
+import { redirect } from "next/navigation";
 import { cookieUtils } from "../supabase/cookie";
 
 export const signInWithOAuth = async (
@@ -39,46 +40,7 @@ export const signOut = async () => {
   }
 
   clearTokenCookies();
-
-  return { error: null };
-};
-
-export const refreshAccessToken = async () => {
-  const { getRefreshToken, clearTokenCookies, setTokenCookies } =
-    await cookieUtils();
-  const refreshToken = getRefreshToken();
-
-  if (!refreshToken) {
-    return { error: { message: "No refresh token" } };
-  }
-
-  try {
-    const response = await fetch(
-      `${env.SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: env.SUPABASE_ANON_KEY
-        },
-        body: JSON.stringify({
-          refresh_token: refreshToken
-        })
-      }
-    );
-
-    if (!response.ok) {
-      clearTokenCookies();
-      return { error: { message: "Token refresh failed" } };
-    }
-
-    const data = await response.json();
-    setTokenCookies(data.access_token, data.refresh_token, data.expires_in);
-
-    return { error: null, data };
-  } catch (error) {
-    return { error: { message: "Network error" } };
-  }
+  redirect("/");
 };
 
 export const getUser = async () => {
