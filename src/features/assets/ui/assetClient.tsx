@@ -1,10 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useActionState } from "react";
 import { AssetSection } from "./assetSection";
 import { formatKrw } from "@/shared/lib/functions";
 import { Modal } from "@/shared/ui";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
+
+interface FormState {
+  success: boolean;
+  error: string | null;
+  data: any;
+  message: string | null;
+}
+
+interface PropType {
+  handleSubmit: (
+    prevState: FormState | null,
+    formData: FormData
+  ) => Promise<FormState>;
+}
 
 const PlusIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg
@@ -78,14 +92,15 @@ const userAssets = {
   }
 };
 
-export function AssetClient() {
+export function AssetClient({ handleSubmit }: PropType) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [assetType, setAssetType] = useState<
     "crypto" | "stocks" | "cash" | null
   >(null);
 
+  const [_, formAction, isPending] = useActionState(handleSubmit, null);
+
   const openModal = (assetType: "crypto" | "stocks" | "cash" | null = null) => {
-    console.log(assetType);
     setAssetType(assetType);
     setIsModalOpen(true);
   };
@@ -93,11 +108,6 @@ export function AssetClient() {
   const closeModal = () => {
     setIsModalOpen(false);
     setAssetType(null);
-  };
-
-  const handleSubmit = () => {
-    console.log("Adding asset:", assetType);
-    closeModal();
   };
 
   return (
@@ -198,102 +208,107 @@ export function AssetClient() {
         </button>
       </div> */}
       <Modal title="자산 추가" isOpen={isModalOpen} onClose={closeModal}>
-        <div className="p-6 space-y-6">
-          {!assetType && (
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-3">
-                자산 유형 선택
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {ASSET_LIST.map((el) => (
-                  <button
-                    key={el.value}
-                    onClick={() => setAssetType(el.value)}
-                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                      assetType === el.value
-                        ? "border-blue-500 bg-blue-500/20 text-blue-400"
-                        : "border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500"
-                    }`}
-                  >
-                    <div className="text-center">
-                      <div className="text-lg mb-1">{el.emoji}</div>
-                      <div className="text-xs">{el.name}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+        <form action={formAction}>
+          {assetType && (
+            <input type="hidden" name="assetType" value={assetType} />
           )}
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                {assetType === "crypto" && "코인명/심볼"}
-                {assetType === "stocks" && "종목명/심볼"}
-                {assetType === "cash" && "통화"}
-              </label>
-              <input
-                type="text"
-                placeholder={
-                  assetType === "crypto"
-                    ? "BTC, ETH 등"
-                    : assetType === "stocks"
-                    ? "AAPL, TSLA 등"
-                    : "USD, EUR 등"
-                }
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                {assetType === "crypto" && "보유 수량"}
-                {assetType === "stocks" && "보유 주식 수"}
-                {assetType === "cash" && "보유 금액"}
-              </label>
-              <input
-                type="number"
-                step={
-                  assetType === "crypto"
-                    ? "0.00000001"
-                    : assetType === "stocks"
-                    ? "1"
-                    : "0.01"
-                }
-                placeholder="수량 입력"
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-
-            {assetType !== "cash" && (
+          <div className="p-6 space-y-6">
+            {!assetType && (
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-3">
+                  자산 유형 선택
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {ASSET_LIST.map((el) => (
+                    <button
+                      key={el.value}
+                      onClick={() => setAssetType(el.value)}
+                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                        assetType === el.value
+                          ? "border-blue-500 bg-blue-500/20 text-blue-400"
+                          : "border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500"
+                      }`}
+                    >
+                      <div className="text-center">
+                        <div className="text-lg mb-1">{el.emoji}</div>
+                        <div className="text-xs">{el.name}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  평균 단가 (원)
+                  {assetType === "crypto" && "코인명/심볼"}
+                  {assetType === "stocks" && "종목명/심볼"}
+                  {assetType === "cash" && "통화"}
                 </label>
                 <input
-                  type="number"
-                  step="0.01"
-                  placeholder="구매 평균 단가"
+                  type="text"
+                  name="symbol"
+                  placeholder={
+                    assetType === "crypto"
+                      ? "BTC, ETH 등"
+                      : assetType === "stocks"
+                      ? "AAPL, TSLA 등"
+                      : "USD, EUR 등"
+                  }
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
                 />
               </div>
-            )}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  {assetType === "crypto" && "보유 수량"}
+                  {assetType === "stocks" && "보유 주식 수"}
+                  {assetType === "cash" && "보유 금액"}
+                </label>
+                <input
+                  type="number"
+                  step={
+                    assetType === "crypto"
+                      ? "0.00000001"
+                      : assetType === "stocks"
+                      ? "1"
+                      : "0.01"
+                  }
+                  placeholder="수량 입력"
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
+                  name="amount"
+                />
+              </div>
+              {assetType !== "cash" && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    평균 단가 (원)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="구매 평균 단가"
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
+                    name="averagePrice"
+                  />
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="flex space-x-3 p-6 border-t border-slate-700">
-          <button
-            onClick={closeModal}
-            className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
-          >
-            취소
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            추가하기
-          </button>
-        </div>
+          <div className="flex space-x-3 p-6 border-t border-slate-700">
+            <button
+              onClick={closeModal}
+              className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors cursor-pointer"
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors cursor-pointer"
+            >
+              {isPending ? "추가 중..." : "추가하기"}
+            </button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
