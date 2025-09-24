@@ -2,7 +2,9 @@ import { getUser } from "@/shared/api/auth/functions";
 import { Dashboard, LandingPage } from "./entities/home/ui";
 
 export default async function Home() {
-  const { name, error } = await getUser();
+  const result = await getUser();
+  const name = result?.name || null;
+  const error = result?.error || null;
 
   if (error || !name) {
     return <LandingPage />;

@@ -4,7 +4,8 @@ import LoginStatus from "./loginStatus";
 import { getUser } from "@/shared/api/auth/functions";
 
 export async function Navbar() {
-  const { name } = await getUser();
+  const result = await getUser();
+  const name = result?.name || null;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900/90 backdrop-blur-sm border-b border-slate-700/50">

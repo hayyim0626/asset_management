@@ -17,11 +17,6 @@ export async function middleware(request: NextRequest) {
   const refreshToken = request.cookies.get("sb-refresh-token")?.value;
 
   if (!accessToken) {
-    console.log(
-      "어머나 accessToken이 없어졌네요? 현재 라우트: ",
-      request.nextUrl.pathname
-    );
-
     if (!refreshToken) {
       if (request.nextUrl.pathname === "/") {
         return NextResponse.next();
@@ -33,7 +28,6 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isTokenExpired(accessToken)) {
-    console.log("토큰이 만료되어 refreshToken으로 다시 교체를 진행합니다.");
     if (!refreshToken) {
       return NextResponse.redirect(new URL("/", request.url));
     }
@@ -45,7 +39,6 @@ export async function middleware(request: NextRequest) {
 }
 
 async function handleTokenRefresh(request: NextRequest, refreshToken: string) {
-  console.log("Token Refresh 함수가 실행되었습니다.");
   try {
     const response = await fetch(
       `${env.SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,
@@ -72,8 +65,6 @@ async function handleTokenRefresh(request: NextRequest, refreshToken: string) {
     }
 
     const data = await response.json();
-
-    console.log(data);
 
     const nextResponse = NextResponse.next();
     nextResponse.cookies.set("sb-access-token", data.access_token, {
