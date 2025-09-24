@@ -1,4 +1,6 @@
 import { AssetClient } from "@/features/assets/ui";
+import { getAsset } from "@/entities/assets/api";
+import { cookieUtils } from "@/shared/api/supabase/cookie";
 
 interface FormState {
   success: boolean;
@@ -7,7 +9,10 @@ interface FormState {
   message: string | null;
 }
 
-export default function AssetsPage() {
+export default async function AssetsPage() {
+  const { getAccessToken } = await cookieUtils();
+  const res = await getAsset(getAccessToken() as string);
+
   const handleSubmit = async (prev: FormState, formData: FormData) => {
     "use server";
 
@@ -24,7 +29,7 @@ export default function AssetsPage() {
   return (
     <>
       <div className="min-h-screen bg-slate-950">
-        <AssetClient handleSubmit={handleSubmit} />
+        <AssetClient handleSubmit={handleSubmit} data={res.data} />
       </div>
     </>
   );

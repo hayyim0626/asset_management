@@ -2,9 +2,10 @@
 
 import React, { useState, useActionState } from "react";
 import { AssetSection } from "./assetSection";
-import { formatKrw } from "@/shared/lib/functions";
 import { Modal } from "@/shared/ui";
+import { AssetType } from "@/entities/assets/api/types";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
+import { formatKrw } from "@/shared/lib/functions";
 
 interface FormState {
   success: boolean;
@@ -18,6 +19,7 @@ interface PropType {
     prevState: FormState | null,
     formData: FormData
   ) => Promise<FormState>;
+  data: AssetType;
 }
 
 const PlusIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -37,62 +39,7 @@ const PlusIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 );
 
-const userAssets = {
-  totalValue: 0,
-  crypto: {
-    totalValue: 0
-    // assets: [
-    //   {
-    //     symbol: "BTC",
-    //     name: "Bitcoin",
-    //     amount: 0,
-    //     currentPrice: 0,
-    //     value: 0
-    //   },
-    //   {
-    //     symbol: "ETH",
-    //     name: "Ethereum",
-    //     amount: 0,
-    //     currentPrice: 0,
-    //     value: 0
-    //   }
-    // ]
-  },
-  stocks: {
-    totalValue: 0
-    // assets: [
-    //   {
-    //     symbol: "AAPL",
-    //     name: "Apple Inc",
-    //     amount: 10,
-    //     currentPrice: 150000,
-    //     value: 1500000
-    //   },
-    //   {
-    //     symbol: "TSLA",
-    //     name: "Tesla Inc",
-    //     amount: 5,
-    //     currentPrice: 170000,
-    //     value: 850000
-    //   }
-    // ]
-  },
-  cash: {
-    totalValue: 0
-    // assets: [
-    // { currency: "KRW", name: "원화", amount: 1000000, value: 1000000 },
-    // {
-    //   currency: "USD",
-    //   name: "달러",
-    //   amount: 130,
-    //   currentPrice: 1300,
-    //   value: 169000
-    // }
-    // ]
-  }
-};
-
-export function AssetClient({ handleSubmit }: PropType) {
+export function AssetClient({ handleSubmit, data }: PropType) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [assetType, setAssetType] = useState<
     "crypto" | "stocks" | "cash" | null
@@ -117,7 +64,7 @@ export function AssetClient({ handleSubmit }: PropType) {
           <h1 className="text-3xl font-bold text-white mb-2">내 자산 현황</h1>
           <p className="text-slate-400">보유 자산을 관리하고 추적하세요</p>
         </div>
-        {userAssets.totalValue > 0 && (
+        {data.totalValue > 0 && (
           <button
             onClick={() => openModal()}
             className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 cursor-pointer text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
@@ -128,7 +75,7 @@ export function AssetClient({ handleSubmit }: PropType) {
         )}
       </div>
       <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl border border-blue-500/30 p-8">
-        {userAssets.totalValue === 0 ? (
+        {data.totalValue === 0 ? (
           <div className="flex flex-col items-center gap-6">
             <p className="text-blue-300 text-lg font-medium mb-2">
               아직 등록된 자산이 없어요!
@@ -147,25 +94,25 @@ export function AssetClient({ handleSubmit }: PropType) {
               총 자산 가치
             </p>
             <p className="text-4xl font-bold text-white mb-4">
-              {formatKrw(userAssets.totalValue)}
+              {formatKrw(data.totalValue)}
             </p>
             <div className="flex justify-center space-x-8 text-sm">
               <div className="text-center">
                 <p className="text-slate-400">코인</p>
                 <p className="text-white font-semibold">
-                  {formatKrw(userAssets.crypto.totalValue)}
+                  {formatKrw(data.crypto.totalValue)}
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-slate-400">주식</p>
                 <p className="text-white font-semibold">
-                  {formatKrw(userAssets.stocks.totalValue)}
+                  {formatKrw(data.stocks.totalValue)}
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-slate-400">현금</p>
                 <p className="text-white font-semibold">
-                  {formatKrw(userAssets.cash.totalValue)}
+                  {formatKrw(data.cash.totalValue)}
                 </p>
               </div>
             </div>
@@ -177,24 +124,24 @@ export function AssetClient({ handleSubmit }: PropType) {
         <AssetSection
           openModal={openModal}
           title="코인 자산"
-          totalValue={userAssets.crypto.totalValue}
-          assets={userAssets.crypto?.assets || []}
+          totalValue={data.crypto.totalValue}
+          assets={data.crypto?.assets || []}
           type="crypto"
         />
 
         <AssetSection
           openModal={openModal}
           title="주식 자산"
-          totalValue={userAssets.stocks.totalValue}
-          assets={userAssets.stocks?.assets || []}
+          totalValue={data.stocks.totalValue}
+          assets={data.stocks?.assets || []}
           type="stocks"
         />
 
         <AssetSection
           openModal={openModal}
           title="현금 자산"
-          totalValue={userAssets.cash.totalValue}
-          assets={userAssets.cash?.assets || []}
+          totalValue={data.cash.totalValue}
+          assets={data.cash?.assets || []}
           type="cash"
         />
       </div>
