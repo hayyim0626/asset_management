@@ -59,9 +59,9 @@ export function AssetSection({
             className="flex items-center justify-between py-3 px-4 bg-slate-800/50 rounded-lg border border-slate-700/50"
           >
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full flex items-center justify-center">
-                <span className="text-sm font-bold text-white">
-                  {type === "cash" ? asset.currency : asset.symbol}
+              <div className="w-10 h-10 rounded-full bg-slate-800 flex justify-center items-center">
+                <span className="text-3xl">
+                  {type === "cash" ? asset.image : asset.symbol}
                 </span>
               </div>
               <div>

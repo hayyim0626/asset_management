@@ -4,3 +4,11 @@ export type AssetType = {
   crypto: { totalValue: number; assets: [] };
   stocks: { totalValue: number; assets: [] };
 };
+
+export type CurrencyType = {
+  code: string;
+  name: string;
+  symbol: string;
+  flagEmoji: string;
+  exchangeRate: number;
+};
