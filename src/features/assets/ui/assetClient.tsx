@@ -1,9 +1,13 @@
 "use client";
-
-import React, { useState, useActionState, useEffect } from "react";
+import Image from "next/image";
+import React, { useState, useActionState, useEffect, useMemo } from "react";
 import { AssetSection } from "./assetSection";
 import { Modal } from "@/shared/ui";
-import { AssetType, CurrencyType } from "@/entities/assets/api/types";
+import {
+  AssetType,
+  CurrencyType,
+  CoinlistType
+} from "@/entities/assets/api/types";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
 import { formatKrw } from "@/shared/lib/functions";
 
@@ -20,6 +24,7 @@ interface PropType {
   ) => Promise<FormState>;
   data: AssetType;
   currencyList: CurrencyType[];
+  coinList: CoinlistType[];
 }
 
 const PlusIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -56,12 +61,17 @@ const ChevronDownIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 );
 
-export function AssetClient({ handleSubmit, data, currencyList }: PropType) {
+export function AssetClient({
+  handleSubmit,
+  data,
+  currencyList,
+  coinList
+}: PropType) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [assetType, setAssetType] = useState<
     "crypto" | "stocks" | "cash" | null
   >(null);
-  const [selectedCurrency, setSelectedCurrency] = useState<string>("");
+  const [selectedAsset, setSelectedAsset] = useState<string>("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [state, formAction, isPending] = useActionState(handleSubmit, {
@@ -76,14 +86,47 @@ export function AssetClient({ handleSubmit, data, currencyList }: PropType) {
     }
   }, [state.success]);
 
-  // 자산 타입 변경 시 통화 선택 초기화
   useEffect(() => {
-    if (assetType !== "cash") {
-      setSelectedCurrency("");
-    } else if (currencyList.length > 0 && !selectedCurrency) {
-      setSelectedCurrency(currencyList[0].code);
+    switch (assetType) {
+      case "cash":
+        if (currencyList.length > 0 && !selectedAsset) {
+          setSelectedAsset(currencyList[0].code);
+        }
+        break;
+      case "crypto":
+        if (coinList.length > 0 && !selectedAsset) {
+          setSelectedAsset(coinList[0].symbol);
+        }
+        break;
+      default:
+        setSelectedAsset("");
     }
-  }, [assetType, currencyList]);
+  }, [assetType, currencyList, coinList]);
+
+  console.log(currencyList);
+
+  const dropdownData = useMemo(() => {
+    switch (assetType) {
+      case "cash":
+        return currencyList.map((el) => ({
+          name: el.name,
+          symbol: el.code,
+          image: el.image
+        }));
+      case "crypto":
+        return coinList.map((el) => ({
+          name: el.name,
+          symbol: el.symbol,
+          image: el.image
+        }));
+      default:
+        return currencyList.map((el) => ({
+          name: el.name,
+          symbol: el.code,
+          image: el.image
+        }));
+    }
+  }, [assetType]);
 
   const openModal = (assetType: "crypto" | "stocks" | "cash" | null = null) => {
     setAssetType(assetType);
@@ -93,16 +136,16 @@ export function AssetClient({ handleSubmit, data, currencyList }: PropType) {
   const closeModal = () => {
     setIsModalOpen(false);
     setAssetType(null);
-    setSelectedCurrency("");
+    setSelectedAsset("");
     setIsDropdownOpen(false);
   };
 
   const handleCurrencySelect = (currencyCode: string) => {
-    setSelectedCurrency(currencyCode);
+    setSelectedAsset(currencyCode);
     setIsDropdownOpen(false);
   };
 
-  console.log(currencyList);
+  console.log(dropdownData);
 
   return (
     <div className="max-w-7xl sm:px-6 lg:p-8 mx-auto space-y-8">
@@ -111,7 +154,7 @@ export function AssetClient({ handleSubmit, data, currencyList }: PropType) {
           <h1 className="text-3xl font-bold text-white mb-2">내 자산 현황</h1>
           <p className="text-slate-400">보유 자산을 관리하고 추적하세요</p>
         </div>
-        {data.totalValue > 0 && (
+        {data.totalValue.krw > 0 && (
           <button
             onClick={() => openModal()}
             className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 cursor-pointer text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
@@ -122,7 +165,7 @@ export function AssetClient({ handleSubmit, data, currencyList }: PropType) {
         )}
       </div>
       <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl border border-blue-500/30 p-8">
-        {data.totalValue === 0 ? (
+        {data.totalValue.krw === 0 ? (
           <div className="flex flex-col items-center gap-6">
             <p className="text-blue-300 text-lg font-medium mb-2">
               아직 등록된 자산이 없어요!
@@ -141,25 +184,25 @@ export function AssetClient({ handleSubmit, data, currencyList }: PropType) {
               총 자산 가치
             </p>
             <p className="text-4xl font-bold text-white mb-4">
-              {formatKrw(data.totalValue)}
+              {formatKrw(data.totalValue.krw)}
             </p>
             <div className="flex justify-center space-x-8 text-sm">
               <div className="text-center">
                 <p className="text-slate-400">코인</p>
                 <p className="text-white font-semibold">
-                  {formatKrw(data.crypto.totalValue)}
+                  {formatKrw(data.crypto.totalValue.krw)}
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-slate-400">주식</p>
                 <p className="text-white font-semibold">
-                  {formatKrw(data.stocks.totalValue)}
+                  {formatKrw(data.stocks.totalValue.krw)}
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-slate-400">현금</p>
                 <p className="text-white font-semibold">
-                  {formatKrw(data.cash.totalValue)}
+                  {formatKrw(data.cash.totalValue.krw)}
                 </p>
               </div>
             </div>
@@ -170,26 +213,24 @@ export function AssetClient({ handleSubmit, data, currencyList }: PropType) {
       <div className="space-y-8">
         <AssetSection
           openModal={openModal}
+          title="현금 자산"
+          totalValue={data.cash.totalValue}
+          assets={data.cash?.assets || []}
+          type="cash"
+        />
+        <AssetSection
+          openModal={openModal}
           title="코인 자산"
           totalValue={data.crypto.totalValue}
           assets={data.crypto?.assets || []}
           type="crypto"
         />
-
         <AssetSection
           openModal={openModal}
           title="주식 자산"
           totalValue={data.stocks.totalValue}
           assets={data.stocks?.assets || []}
           type="stocks"
-        />
-
-        <AssetSection
-          openModal={openModal}
-          title="현금 자산"
-          totalValue={data.cash.totalValue}
-          assets={data.cash?.assets || []}
-          type="cash"
         />
       </div>
 
@@ -198,8 +239,8 @@ export function AssetClient({ handleSubmit, data, currencyList }: PropType) {
           {assetType && (
             <input type="hidden" name="assetType" value={assetType} />
           )}
-          {assetType === "cash" && selectedCurrency && (
-            <input type="hidden" name="symbol" value={selectedCurrency} />
+          {selectedAsset && (
+            <input type="hidden" name="symbol" value={selectedAsset} />
           )}
           <div className="p-6 space-y-6">
             {!assetType && (
@@ -235,46 +276,47 @@ export function AssetClient({ handleSubmit, data, currencyList }: PropType) {
                   {assetType === "cash" && "통화"}
                 </label>
 
-                {assetType === "cash" ? (
+                {assetType !== "stocks" ? (
                   <div className="relative">
                     <button
                       type="button"
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:outline-none flex items-center justify-between"
+                      className="w-full px-4 py-3 cursor-pointer bg-slate-800 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:outline-none flex items-center justify-between"
                     >
                       <div className="flex items-center space-x-3">
-                        {selectedCurrency &&
-                        currencyList.find(
-                          (c) => c.code === selectedCurrency
-                        ) ? (
+                        {selectedAsset &&
+                        dropdownData.find((c) => c.symbol === selectedAsset) ? (
                           <>
                             <span className="text-lg">
-                              {
-                                currencyList.find(
-                                  (c) => c.code === selectedCurrency
-                                )?.flagEmoji
-                              }
+                              {assetType === "cash" ? (
+                                dropdownData.find(
+                                  (c) => c.symbol === selectedAsset
+                                )?.image
+                              ) : (
+                                <Image
+                                  src={
+                                    dropdownData.find(
+                                      (c) => c.symbol === selectedAsset
+                                    )?.image
+                                  }
+                                  width={20}
+                                  height={20}
+                                  alt="coin_img"
+                                  className="rounded-full"
+                                />
+                              )}
                             </span>
                             <div className="flex items-center space-x-2">
                               <span className="font-medium">
-                                {selectedCurrency}
+                                {selectedAsset}
                               </span>
                               <span className="text-slate-400">-</span>
                               <span className="text-sm text-slate-400">
                                 {
-                                  currencyList.find(
-                                    (c) => c.code === selectedCurrency
+                                  dropdownData.find(
+                                    (c) => c.symbol === selectedAsset
                                   )?.name
                                 }
-                              </span>
-                              <span className="text-sm text-slate-400">
-                                (
-                                {
-                                  currencyList.find(
-                                    (c) => c.code === selectedCurrency
-                                  )?.symbol
-                                }
-                                )
                               </span>
                             </div>
                           </>
@@ -293,34 +335,36 @@ export function AssetClient({ handleSubmit, data, currencyList }: PropType) {
 
                     {isDropdownOpen && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                        {currencyList.map((currency) => (
+                        {dropdownData.map((currency) => (
                           <button
-                            key={currency.code}
+                            key={currency.symbol}
                             type="button"
-                            onClick={() => handleCurrencySelect(currency.code)}
+                            onClick={() =>
+                              handleCurrencySelect(currency.symbol)
+                            }
                             className={`w-full px-4 py-3 flex items-center space-x-3 hover:bg-slate-700 transition-colors text-left ${
-                              selectedCurrency === currency.code
+                              selectedAsset === currency.symbol
                                 ? "bg-blue-500/20 text-blue-400"
                                 : "text-white"
                             }`}
                           >
-                            <span className="text-lg">
-                              {currency.flagEmoji}
-                            </span>
+                            {assetType === "cash" ? (
+                              <span className="text-lg">{currency.image}</span>
+                            ) : (
+                              <Image
+                                src={currency.image}
+                                width={20}
+                                height={20}
+                                alt="coin_img"
+                                className="rounded-full"
+                              />
+                            )}
                             <div className="flex items-center space-x-2 flex-1">
                               <span className="font-medium">
-                                {currency.code}
+                                {currency.symbol}
                               </span>
-                              <span className="text-slate-400">-</span>
-                              <span className="text-sm text-slate-300">
-                                {currency.name}
-                              </span>
-                              <span className="text-sm text-slate-400">
-                                ({currency.symbol})
-                              </span>
-                            </div>
-                            <div className="text-xs text-slate-400">
-                              ₩{currency.exchangeRate.toLocaleString()}
+                              <span>-</span>
+                              <span className="text-sm">{currency.name}</span>
                             </div>
                           </button>
                         ))}
@@ -328,18 +372,12 @@ export function AssetClient({ handleSubmit, data, currencyList }: PropType) {
                     )}
                   </div>
                 ) : (
-                  // 코인/주식일 때 기존 입력 필드
+                  // 주식일 때 기존 입력 필드
                   <input
                     type="text"
                     name="symbol"
                     required
-                    placeholder={
-                      assetType === "crypto"
-                        ? "BTC, ETH 등"
-                        : assetType === "stocks"
-                        ? "AAPL, TSLA 등"
-                        : "USD, EUR 등"
-                    }
+                    placeholder={"AAPL, TSLA 등"}
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
                   />
                 )}

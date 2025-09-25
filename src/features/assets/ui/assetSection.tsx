@@ -2,12 +2,14 @@
 
 import React from "react";
 import { formatKrw } from "@/shared/lib/functions";
+import { AssetList } from "@/entities/assets/api/types";
+import Image from "next/image";
 
 interface PropType {
   openModal: (type: "crypto" | "stocks" | "cash") => void;
   title: string;
-  totalValue: number;
-  assets: any[];
+  totalValue: { krw: number; usd: number };
+  assets: AssetList[];
   type: "crypto" | "stocks" | "cash";
 }
 
@@ -41,7 +43,7 @@ export function AssetSection({
         <div>
           <h3 className="text-lg font-semibold text-white">{title}</h3>
           <p className="text-2xl font-bold text-blue-400 mt-1">
-            {formatKrw(totalValue)}
+            {formatKrw(totalValue.krw)}
           </p>
         </div>
         <button
@@ -61,28 +63,37 @@ export function AssetSection({
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 rounded-full bg-slate-800 flex justify-center items-center">
                 <span className="text-3xl">
-                  {type === "cash" ? asset.image : asset.symbol}
+                  {type === "cash" ? (
+                    asset.image //emoji
+                  ) : (
+                    <Image
+                      src={asset.image}
+                      width={26}
+                      height={26}
+                      alt="coin_img"
+                    />
+                  )}
                 </span>
               </div>
               <div>
                 <p className="text-white font-medium">{asset.name}</p>
                 <p className="text-slate-400 text-sm">
-                  {type === "cash"
-                    ? `${asset.amount.toLocaleString()} ${asset.currency}`
-                    : `${asset.amount} 개`}
+                  {type !== "cash"
+                    ? `1${type === "crypto" ? asset.symbol : "주"} `
+                    : `1${asset.currency} `}
+                  ≈ {formatKrw(asset.currentPrice.krw)}
                 </p>
               </div>
             </div>
             <div className="text-right">
               <p className="text-white font-semibold">
-                {formatKrw(asset.value)}
+                {formatKrw(asset.value.krw)}
               </p>
-              {type !== "cash" && (
-                <p className="text-slate-400 text-sm">
-                  {formatKrw(asset.currentPrice)}{" "}
-                  {type === "crypto" ? "개" : "주"}
-                </p>
-              )}
+              <p className="text-slate-400 text-sm">
+                {type === "cash"
+                  ? `${asset.amount.toLocaleString()} ${asset.currency}`
+                  : `${asset.amount} ${asset.symbol}`}
+              </p>
             </div>
           </div>
         ))}

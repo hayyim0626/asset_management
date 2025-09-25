@@ -12,7 +12,6 @@ interface FormData {
 
 export const addAsset = async (formData: FormData, accessToken: string) => {
   try {
-    console.log(default_url);
     const res = await fetch(`${default_url}/add_asset`, {
       method: "POST",
       headers: {
@@ -30,7 +29,6 @@ export const addAsset = async (formData: FormData, accessToken: string) => {
         p_current_price: formData.currentPrice || 0
       })
     });
-    console.log(res);
     if (!res.ok) {
       const errorData = await res.json();
       return {
