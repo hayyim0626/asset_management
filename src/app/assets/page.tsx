@@ -17,20 +17,19 @@ export default async function AssetsPage() {
     formData: FormData
   ): Promise<FormState> => {
     "use server";
-    // 여기 다시 수정해야 함(currency symbol 바뀜)
-    // const res = await addAsset(
-    //   {
-    //     assetType: formData.get("assetType") as string,
-    //     symbol: formData.get("symbol") as string,
-    //     amount: Number(formData.get("amount")),
-    //     averagePrice: Number(formData.get("averagePrice"))
-    //   },
-    //   token
-    // );
+    const res = await addAsset(
+      {
+        assetType: formData.get("assetType") as string,
+        symbol: formData.get("symbol") as string,
+        amount: Number(formData.get("amount")),
+        averagePrice: Number(formData.get("averagePrice"))
+      },
+      token
+    );
 
-    // if (res.success) {
-    //   revalidatePath("/assets");
-    // }
+    if (res.success) {
+      revalidatePath("/assets");
+    }
 
     return {
       success: true,

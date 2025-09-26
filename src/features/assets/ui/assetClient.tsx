@@ -86,45 +86,14 @@ export function AssetClient({
     }
   }, [state.success]);
 
-  useEffect(() => {
-    switch (assetType) {
-      case "cash":
-        if (currencyList.length > 0 && !selectedAsset) {
-          setSelectedAsset(currencyList[0].code);
-        }
-        break;
-      case "crypto":
-        if (coinList.length > 0 && !selectedAsset) {
-          setSelectedAsset(coinList[0].symbol);
-        }
-        break;
-      default:
-        setSelectedAsset("");
-    }
-  }, [assetType, currencyList, coinList]);
-
-  console.log(currencyList);
-
   const dropdownData = useMemo(() => {
     switch (assetType) {
       case "cash":
-        return currencyList.map((el) => ({
-          name: el.name,
-          symbol: el.code,
-          image: el.image
-        }));
+        return currencyList;
       case "crypto":
-        return coinList.map((el) => ({
-          name: el.name,
-          symbol: el.symbol,
-          image: el.image
-        }));
+        return coinList;
       default:
-        return currencyList.map((el) => ({
-          name: el.name,
-          symbol: el.code,
-          image: el.image
-        }));
+        return currencyList;
     }
   }, [assetType]);
 

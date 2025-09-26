@@ -71,6 +71,7 @@ export function AssetSection({
                       width={26}
                       height={26}
                       alt="coin_img"
+                      className="rounded-full"
                     />
                   )}
                 </span>
