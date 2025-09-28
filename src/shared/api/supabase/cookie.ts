@@ -7,11 +7,7 @@ export const cookieUtils = async () => {
   const getAccessToken = () => cookieStore.get("sb-access-token")?.value;
   const getRefreshToken = () => cookieStore.get("sb-refresh-token")?.value;
 
-  const setTokenCookies = (
-    accessToken: string,
-    refreshToken?: string,
-    expiresIn?: number
-  ) => {
+  const setTokenCookies = (accessToken: string, refreshToken?: string, expiresIn?: number) => {
     cookieStore.set("sb-access-token", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

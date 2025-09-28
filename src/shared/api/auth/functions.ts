@@ -4,10 +4,7 @@ import { env } from "@/shared/config/env";
 import { redirect } from "next/navigation";
 import { cookieUtils } from "../supabase/cookie";
 
-export const signInWithOAuth = async (
-  provider: "github" | "google",
-  redirectTo?: string
-) => {
+export const signInWithOAuth = async (provider: "github" | "google", redirectTo?: string) => {
   const authUrl =
     `${env.SUPABASE_URL}/auth/v1/authorize?` +
     new URLSearchParams({

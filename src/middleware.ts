@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/shared/config/env";
 
 export async function middleware(request: NextRequest) {
-  if (
-    request.nextUrl.pathname.startsWith("/_next/") ||
-    request.nextUrl.pathname.includes(".")
-  ) {
+  if (request.nextUrl.pathname.startsWith("/_next/") || request.nextUrl.pathname.includes(".")) {
     return NextResponse.next();
   }
 
@@ -40,24 +37,19 @@ export async function middleware(request: NextRequest) {
 
 async function handleTokenRefresh(request: NextRequest, refreshToken: string) {
   try {
-    const response = await fetch(
-      `${env.SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: env.SUPABASE_ANON_KEY!
-        },
-        body: JSON.stringify({
-          refresh_token: refreshToken
-        })
-      }
-    );
+    const response = await fetch(`${env.SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: env.SUPABASE_ANON_KEY!
+      },
+      body: JSON.stringify({
+        refresh_token: refreshToken
+      })
+    });
 
     if (!response.ok) {
-      const loginResponse = NextResponse.redirect(
-        new URL("/login", request.url)
-      );
+      const loginResponse = NextResponse.redirect(new URL("/login", request.url));
       loginResponse.cookies.delete("sb-access-token");
       loginResponse.cookies.delete("sb-refresh-token");
       loginResponse.cookies.delete("sb-user");
@@ -65,6 +57,19 @@ async function handleTokenRefresh(request: NextRequest, refreshToken: string) {
     }
 
     const data = await response.json();
+
+    const userResponse = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        Authorization: `Bearer ${data.access_token}`,
+        apikey: env.SUPABASE_ANON_KEY
+      }
+    });
+
+    if (!userResponse.ok) {
+      return NextResponse.json({ error: "Failed to fetch user data" }, { status: 401 });
+    }
+
+    const userData = await userResponse.json();
 
     const nextResponse = NextResponse.next();
     nextResponse.cookies.set("sb-access-token", data.access_token, {
@@ -84,6 +89,18 @@ async function handleTokenRefresh(request: NextRequest, refreshToken: string) {
         path: "/"
       });
     }
+
+    nextResponse.cookies.set(
+      "sb-user",
+      JSON.stringify({ email: userData.email, name: userData.user_metadata.full_name }),
+      {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: data.expires_in || 3600,
+        path: "/"
+      }
+    );
 
     return nextResponse;
   } catch (error) {
