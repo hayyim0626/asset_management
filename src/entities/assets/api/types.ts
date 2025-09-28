@@ -7,7 +7,7 @@ export type AssetType = {
 
 export type AssetList = {
   amount: number;
-  currency?: string;
+  symbol: string;
   currentPrice: { krw: number; usd: number };
   id: string;
   image: string;
