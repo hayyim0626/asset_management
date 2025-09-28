@@ -6,7 +6,8 @@ import { AssetList } from "@/entities/assets/api/types";
 import Image from "next/image";
 
 interface PropType {
-  openModal: (type: "crypto" | "stocks" | "cash") => void;
+  openAddModal: (type: "crypto" | "stocks" | "cash") => void;
+  openEditModal: (type: "crypto" | "stocks" | "cash", asset: AssetList) => void;
   title: string;
   totalValue: { krw: number; usd: number };
   assets: AssetList[];
@@ -21,17 +22,30 @@ const PlusIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
     viewBox="0 0 24 24"
     xmlns="http://www.w3.org/2000/svg"
   >
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+  </svg>
+);
+
+const EditIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg
+    className={`${className} cursor-pointer`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={2}
-      d="M12 4v16m8-8H4"
+      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
     />
   </svg>
 );
 
 export function AssetSection({
-  openModal,
+  openAddModal,
+  openEditModal,
   title,
   totalValue,
   assets,
@@ -42,12 +56,10 @@ export function AssetSection({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-semibold text-white">{title}</h3>
-          <p className="text-2xl font-bold text-blue-400 mt-1">
-            {formatKrw(totalValue.krw)}
-          </p>
+          <p className="text-2xl font-bold text-blue-400 mt-1">{formatKrw(totalValue.krw)}</p>
         </div>
         <button
-          onClick={() => openModal(type)}
+          onClick={() => openAddModal(type)}
           className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg transition-colors"
         >
           <PlusIcon className="w-5 h-5 text-white" />
@@ -79,22 +91,22 @@ export function AssetSection({
               <div>
                 <p className="text-white font-medium">{asset.name}</p>
                 <p className="text-slate-400 text-sm">
-                  {type !== "cash"
-                    ? `1${type === "crypto" ? asset.symbol : "주"} `
-                    : `1${asset.currency} `}
-                  ≈ {formatKrw(asset.currentPrice.krw)}
+                  1{type === "stocks" ? "주" : asset.symbol} ≈ {formatKrw(asset.currentPrice.krw)}
                 </p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-white font-semibold">
-                {formatKrw(asset.value.krw)}
-              </p>
-              <p className="text-slate-400 text-sm">
-                {type === "cash"
-                  ? `${asset.amount.toLocaleString()} ${asset.currency}`
-                  : `${asset.amount} ${asset.symbol}`}
-              </p>
+            <div className="flex items-center space-x-3">
+              <div className="text-right">
+                <p className="text-white font-semibold">{formatKrw(asset.value.krw)}</p>
+                <p className="text-slate-400 text-sm">
+                  {type === "cash"
+                    ? `${asset.amount.toLocaleString()} ${asset.symbol}`
+                    : `${asset.amount} ${asset.symbol}`}
+                </p>
+              </div>
+              <button onClick={() => openEditModal(type, asset)}>
+                <EditIcon className="w-5 h-5 text-slate-500 hover:text-slate-600 transition-colors" />
+              </button>
             </div>
           </div>
         ))}
@@ -104,7 +116,7 @@ export function AssetSection({
         <div className="text-center py-8 text-slate-400">
           <p>등록된 {title.toLowerCase()} 자산이 없습니다.</p>
           <button
-            onClick={() => openModal(type)}
+            onClick={() => openAddModal(type)}
             className="mt-4 text-blue-400 hover:text-blue-300 text-sm"
           >
             + 첫 번째 자산 추가하기

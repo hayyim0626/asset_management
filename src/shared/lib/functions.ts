@@ -5,3 +5,9 @@ export const formatKrw = (amount: number) => {
     }).format(amount) + "원"
   );
 };
+
+export const formatUsd = (amount: number, maxDigits: number = 8) => {
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: maxDigits
+  }).format(amount);
+};
