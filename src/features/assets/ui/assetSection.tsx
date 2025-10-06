@@ -114,7 +114,7 @@ export function AssetSection({
 
       {assets.length === 0 && (
         <div className="text-center py-8 text-slate-400">
-          <p>등록된 {title.toLowerCase()} 자산이 없습니다.</p>
+          <p>등록된 {title.toLowerCase()}이 없습니다.</p>
           <button
             onClick={() => openAddModal(type)}
             className="mt-4 text-blue-400 hover:text-blue-300 text-sm"

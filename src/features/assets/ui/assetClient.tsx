@@ -37,7 +37,7 @@ export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinL
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [assetType, setAssetType] = useState<"crypto" | "stocks" | "cash" | null>(null);
   const [assetToEdit, setAssetToEdit] = useState<AssetList | null>(null);
-
+  const [isFirstAdd, setIsFirstAdd] = useState(false);
   const [addState, addFormAction, isAddPending] = useActionState(handleAdd, {
     success: false,
     error: null,
@@ -104,22 +104,16 @@ export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinL
           <h1 className="text-3xl font-bold text-white mb-2">내 자산 현황</h1>
           <p className="text-slate-400">보유 자산을 관리하고 추적하세요</p>
         </div>
-        {data.totalValue.krw > 0 && (
-          <button
-            onClick={() => openAddModal()}
-            className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 cursor-pointer text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
-          >
-            <PlusIcon className="w-5 h-5" />
-            <span>자산 추가</span>
-          </button>
-        )}
       </div>
       <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl border border-blue-500/30 p-8">
         {data.totalValue.krw === 0 ? (
           <div className="flex flex-col items-center gap-6">
             <p className="text-blue-300 text-lg font-medium mb-2">아직 등록된 자산이 없어요!</p>
             <button
-              onClick={() => openAddModal()}
+              onClick={() => {
+                setIsFirstAdd(true);
+                openAddModal();
+              }}
               className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 cursor-pointer text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
             >
               <PlusIcon className="w-5 h-5" />
@@ -178,6 +172,8 @@ export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinL
       <AddAssetModal
         isOpen={isAddModalOpen}
         onClose={closeAddModal}
+        isFirstAdd={isFirstAdd}
+        setIsFirstAdd={setIsFirstAdd}
         addFormAction={addFormAction}
         assetType={assetType}
         setAssetType={setAssetType}

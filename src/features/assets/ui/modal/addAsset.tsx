@@ -9,6 +9,8 @@ import { ASSET_LIST } from "@/features/assets/lib/consts";
 interface PropType {
   isOpen: boolean;
   onClose: () => void;
+  isFirstAdd: boolean;
+  setIsFirstAdd: (val: boolean) => void;
   addFormAction: (data: FormData) => void;
   assetType: "crypto" | "stocks" | "cash" | null;
   setAssetType: (type: "crypto" | "stocks" | "cash" | null) => void;
@@ -17,13 +19,25 @@ interface PropType {
 }
 
 export function AddAssetModal(props: PropType) {
-  const { isOpen, onClose, addFormAction, assetType, setAssetType, isAddPending, dropdownData } =
-    props;
+  const {
+    isOpen,
+    onClose,
+    isFirstAdd,
+    setIsFirstAdd,
+    addFormAction,
+    assetType,
+    setAssetType,
+    isAddPending,
+    dropdownData
+  } = props;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<string>("");
 
   useEffect(() => {
-    if (!isOpen) setAssetType(null);
+    if (!isOpen) {
+      setAssetType(null);
+      setIsFirstAdd(false);
+    }
   }, [isOpen]);
 
   const handleCurrencySelect = (currencyCode: string) => {
@@ -49,7 +63,7 @@ export function AddAssetModal(props: PropType) {
         {assetType && <input type="hidden" name="assetType" value={assetType} />}
         {selectedAsset && <input type="hidden" name="symbol" value={selectedAsset} />}
         <div className="p-6 space-y-6">
-          {!assetType && (
+          {isFirstAdd && (
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-3">
                 자산 유형 선택
