@@ -4,6 +4,7 @@ import { AssetSection } from "./assetSection";
 import { AssetType, CurrencyType, CoinlistType, AssetList } from "@/entities/assets/api/types";
 import { AddAssetModal, EditAssetModal } from "@/features/assets/ui";
 import { formatKrw } from "@/shared/lib/functions";
+import toast from "react-hot-toast";
 
 export interface FormState {
   success: boolean;
@@ -55,12 +56,14 @@ export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinL
   useEffect(() => {
     if (addState.success && addState.date) {
       closeAddModal();
+      toast.success(addState.message);
     }
   }, [addState.success, addState.date]);
 
   useEffect(() => {
     if (removeState.success && removeState.date) {
       closeEditModal();
+      toast.success(removeState.message);
     }
   }, [removeState.success && removeState.date]);
 

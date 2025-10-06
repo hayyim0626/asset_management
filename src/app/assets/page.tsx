@@ -57,7 +57,7 @@ export default async function AssetsPage() {
     return {
       success: true,
       error: null,
-      message: "자산이 성공적으로 삭제되었습니다.",
+      message: "자산이 성공적으로 편집되었습니다.",
       date: Date.now()
     };
   };
