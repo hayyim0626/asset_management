@@ -9,6 +9,7 @@ export interface FormState {
   success: boolean;
   error: string | null;
   message: string | null;
+  date: number;
 }
 
 interface PropType {
@@ -40,26 +41,28 @@ export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinL
   const [addState, addFormAction, isAddPending] = useActionState(handleAdd, {
     success: false,
     error: null,
-    message: null
+    message: null,
+    date: Date.now()
   });
 
   const [removeState, removeFormAction, isRemovePending] = useActionState(handleRemove, {
     success: false,
     error: null,
-    message: null
+    message: null,
+    date: Date.now()
   });
 
   useEffect(() => {
-    if (addState.success) {
+    if (addState.success && addState.date) {
       closeAddModal();
     }
-  }, [addState.success]);
+  }, [addState.success, addState.date]);
 
   useEffect(() => {
-    if (removeState.success) {
+    if (removeState.success && removeState.date) {
       closeEditModal();
     }
-  }, [removeState.success]);
+  }, [removeState.success && removeState.date]);
 
   const dropdownData = useMemo(() => {
     switch (assetType) {

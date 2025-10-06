@@ -31,7 +31,8 @@ export default async function AssetsPage() {
     return {
       success: true,
       error: null,
-      message: "자산이 성공적으로 추가되었습니다."
+      message: "자산이 성공적으로 추가되었습니다.",
+      date: Date.now()
     };
   };
 
@@ -56,7 +57,8 @@ export default async function AssetsPage() {
     return {
       success: true,
       error: null,
-      message: "자산이 성공적으로 삭제되었습니다."
+      message: "자산이 성공적으로 삭제되었습니다.",
+      date: Date.now()
     };
   };
 
