@@ -4,7 +4,8 @@ import Image from "next/image";
 import { getAsset } from "@/entities/assets/api";
 import { cookieUtils } from "@/shared/api/supabase/cookie";
 import { formatKrw, formatUsd } from "@/shared/lib/functions";
-import { AssetList } from "@/entities/assets/api/types";
+import { AssetInfo } from "@/entities/assets/api/types";
+import { ASSET_LIST } from "@/features/assets/lib/consts";
 
 export async function Dashboard() {
   const { getAccessToken } = await cookieUtils();
@@ -17,6 +18,18 @@ export async function Dashboard() {
   });
   const assetData = await getAsset(token);
   const priceData = await data.json();
+
+  const totalValueArrByAsset = () => {
+    const obj = { ...assetData.data };
+    delete obj.totalValue;
+
+    return (Object.values(obj) as AssetInfo[])
+      .map((el: AssetInfo, idx) => ({
+        name: Object.keys(obj)[idx],
+        totalValue: el.totalValue
+      }))
+      .sort((a, b) => (a.totalValue.krw < b.totalValue.krw ? 1 : -1));
+  };
 
   const monthlyExpenses = {
     totalAmount: 750000,
@@ -56,24 +69,23 @@ export async function Dashboard() {
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-slate-300">보유 코인</h3>
-              {assetData.data.crypto.assets.map((coin: AssetList) => (
+              <h3 className="text-sm font-medium text-slate-300">자산별</h3>
+              {totalValueArrByAsset().map((el) => (
                 <div
-                  key={coin.id}
+                  key={el.name}
                   className="flex items-center justify-between py-2 px-3 bg-slate-800/50 rounded-lg border border-slate-700/50"
                 >
-                  <div className="flex items-center space-x-3">
-                    <Image
-                      src={coin.image}
-                      width={28}
-                      height={28}
-                      alt="coin_img"
-                      className="rounded-full"
-                    />
-                    <div>
-                      <p className="text-sm font-medium text-white">{coin.symbol}</p>
-                      <p className="text-xs text-slate-400">{coin.amount}</p>
-                    </div>
+                  <p className="text-xl">
+                    <span className="text-2xl">
+                      {ASSET_LIST.find((li) => li.value === el.name)?.emoji}
+                    </span>{" "}
+                    {ASSET_LIST.find((li) => li.value === el.name)?.name}
+                  </p>
+                  <div>
+                    <p className="text-lg font-medium text-white">{formatKrw(el.totalValue.krw)}</p>
+                    <p className="text-sm text-slate-400 text-right">
+                      ${formatUsd(el.totalValue.usd, 0)}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -91,23 +103,25 @@ export async function Dashboard() {
         <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-white">이번달 소비</h2>
-            <Link
+            {/* <Link
               href="/expenses"
               className="text-emerald-400 hover:text-emerald-300 text-sm font-medium transition-colors"
             >
               자세히 보기 →
-            </Link>
+            </Link> */}
           </div>
 
           <div className="space-y-4">
-            <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-lg p-4 border border-emerald-500/30">
+            <p className="text-xl font-extrabold text-center">
+              현재 소비노트 기능은 준비중이에요 <br /> 조금만 기다려주세요😅
+            </p>
+            {/* <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-lg p-4 border border-emerald-500/30">
               <p className="text-sm text-emerald-300 font-medium">총 소비 금액</p>
               <p className="text-2xl font-bold text-white">
                 {formatKrw(monthlyExpenses.totalAmount)}
               </p>
-            </div>
-
-            <div className="space-y-3">
+            </div> */}
+            {/* <div className="space-y-3">
               <h3 className="text-sm font-medium text-slate-300">카테고리별 소비</h3>
               {monthlyExpenses.categories.map((category, index) => (
                 <div
@@ -121,20 +135,20 @@ export async function Dashboard() {
                   <p className="text-sm font-semibold text-white">{formatKrw(category.amount)}</p>
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
 
-          <Link
+          {/* <Link
             href="/expenses"
             className="mt-6 w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white py-2 px-4 rounded-lg font-medium transition-all duration-200 text-center block"
           >
             소비 관리하기
-          </Link>
+          </Link> */}
         </div>
       </div>
 
       <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
-        <h2 className="text-xl font-semibold text-white mb-6">주요 코인 가격</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">주요 코인 정보</h2>
 
         {priceData.coin.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

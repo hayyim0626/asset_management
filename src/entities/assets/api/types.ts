@@ -1,8 +1,13 @@
 export type AssetType = {
   totalValue: { krw: number; usd: number };
-  cash: { totalValue: { krw: number; usd: number }; assets: [] };
-  crypto: { totalValue: { krw: number; usd: number }; assets: [] };
-  stocks: { totalValue: { krw: number; usd: number }; assets: [] };
+  cash: { totalValue: AssetInfo };
+  crypto: { totalValue: AssetInfo };
+  stocks: { totalValue: AssetInfo };
+};
+
+export type AssetInfo = {
+  totalValue: { krw: number; usd: number };
+  assets: [];
 };
 
 export type AssetList = {
