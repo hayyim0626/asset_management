@@ -10,9 +10,5 @@ export default async function Home() {
     return <LandingPage />;
   }
 
-  return (
-    <div className="h-screen gap-4">
-      <Dashboard name={name} />
-    </div>
-  );
+  return <Dashboard />;
 }

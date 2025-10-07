@@ -26,12 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased pt-[52px]`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased pt-[52px]`}>
         <Providers>
           <Navbar />
-          <div className="h-screen bg-slate-950">{children}</div>
+          <div className="min-h-screen bg-slate-950">{children}</div>
         </Providers>
       </body>
     </html>
