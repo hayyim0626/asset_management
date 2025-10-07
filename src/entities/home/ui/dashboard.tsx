@@ -1,23 +1,18 @@
-import { env } from "@/shared/config/env";
 import Link from "next/link";
 import Image from "next/image";
 import { getAsset } from "@/entities/assets/api";
+import { getCoinPrice } from "@/entities/crypto/api/getCoinPrice";
 import { cookieUtils } from "@/shared/api/supabase/cookie";
 import { formatKrw, formatUsd } from "@/shared/lib/functions";
 import { AssetInfo } from "@/entities/assets/api/types";
+import { CoinPrice } from "@/entities/crypto/types";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
 
 export async function Dashboard() {
   const { getAccessToken } = await cookieUtils();
   const token = getAccessToken() as string;
-  const data = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/price`, {
-    method: "POST",
-    headers: {
-      apikey: env.SUPABASE_ANON_KEY
-    }
-  });
   const assetData = await getAsset(token);
-  const priceData = await data.json();
+  const priceData = await getCoinPrice();
 
   const totalValueArrByAsset = () => {
     const obj = { ...assetData.data };
@@ -152,7 +147,7 @@ export async function Dashboard() {
 
         {priceData.coin.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {priceData.coin.map((coin) => (
+            {priceData.coin.map((coin: CoinPrice) => (
               <div
                 key={coin.symbol}
                 className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-4 text-center border border-slate-700/50"
