@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { AssetClient } from "@/features/assets/ui";
 import { addAsset, removeAsset } from "@/features/assets/api";
-import { getAsset, getCurrency, getCoins } from "@/entities/assets/api";
+import { getAsset, getCurrency, getCoins, getAssetCategories } from "@/entities/assets/api";
 import { cookieUtils } from "@/shared/api/supabase/cookie";
 import type { FormState } from "@/features/assets/ui/assetClient";
 
@@ -11,6 +11,7 @@ export default async function AssetsPage() {
   const res = await getAsset(token);
   const currency = await getCurrency();
   const coins = await getCoins();
+  const categories = await getAssetCategories();
 
   const handleAddAsset = async (prevState: FormState, formData: FormData): Promise<FormState> => {
     "use server";
