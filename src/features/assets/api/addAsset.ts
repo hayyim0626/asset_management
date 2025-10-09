@@ -8,6 +8,8 @@ interface FormData {
   amount: number;
   averagePrice?: number;
   currentPrice?: number;
+  category?: string;
+  categoryName?: string;
 }
 
 export const addAsset = async (formData: FormData, accessToken: string) => {
@@ -26,7 +28,9 @@ export const addAsset = async (formData: FormData, accessToken: string) => {
         p_amount: formData.amount,
         p_name: formData.name || null,
         p_average_price: formData.averagePrice || null,
-        p_current_price: formData.currentPrice || 0
+        p_current_price: formData.currentPrice || 0,
+        p_category: formData.category || "other",
+        p_category_name: formData.categoryName || "기타"
       })
     });
     if (!res.ok) {

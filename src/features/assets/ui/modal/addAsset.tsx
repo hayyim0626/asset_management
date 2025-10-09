@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { CoinlistType, CurrencyType } from "@/entities/assets/api/types";
+import { CategoryList, CoinlistType, CurrencyType } from "@/entities/assets/api/types";
 import { Modal, SvgIcon } from "@/shared/ui";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
 
@@ -16,6 +16,7 @@ interface PropType {
   setAssetType: (type: "crypto" | "stocks" | "cash" | null) => void;
   isAddPending: boolean;
   dropdownData: CurrencyType[] | CoinlistType[];
+  category: CategoryList[];
 }
 
 export function AddAssetModal(props: PropType) {
@@ -28,21 +29,64 @@ export function AddAssetModal(props: PropType) {
     assetType,
     setAssetType,
     isAddPending,
-    dropdownData
+    dropdownData,
+    category
   } = props;
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isAssetDropdownOpen, setIsAssetDropdownOpen] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   useEffect(() => {
     if (!isOpen) {
       setAssetType(null);
       setIsFirstAdd(false);
+      setSelectedAsset("");
+      setSelectedCategory("");
     }
   }, [isOpen]);
 
+  const categoryNamePlaceholder = useMemo(() => {
+    switch (assetType) {
+      case "cash":
+        switch (selectedCategory) {
+          case "house_deposit":
+            return "부동산/내 월세 집";
+          case "stock_account":
+            return "삼성증권";
+          case "crypto_account":
+            return "업비트";
+          default:
+            return "국민은행";
+        }
+      case "crypto":
+        switch (selectedCategory) {
+          case "exchange":
+            return "업비트";
+          case "personal_wallet":
+            return "메타마스크";
+          case "hardware_wallet":
+            return "JADE";
+          case "crypto_account":
+            return "업비트";
+          case "defi":
+            return "유니스왑";
+          default:
+            return "기타";
+        }
+      case "stocks":
+        return "기타";
+    }
+  }, [assetType, selectedCategory]);
+
   const handleCurrencySelect = (currencyCode: string) => {
     setSelectedAsset(currencyCode);
-    setIsDropdownOpen(false);
+    setIsAssetDropdownOpen(false);
+  };
+
+  const handleCategorySelect = (code: string) => {
+    setSelectedCategory(code);
+    setIsCategoryDropdownOpen(false);
   };
 
   return (
@@ -50,7 +94,12 @@ export function AddAssetModal(props: PropType) {
       <form action={addFormAction}>
         {assetType && <input type="hidden" name="assetType" value={assetType} />}
         {selectedAsset && <input type="hidden" name="symbol" value={selectedAsset} />}
-        <div className="p-6 space-y-6">
+        {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
+        <div
+          className={`p-6 space-y-6 transition-all duration-200 ${
+            isCategoryDropdownOpen ? "min-h-[510px]" : ""
+          }`}
+        >
           {isFirstAdd && (
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-3">
@@ -88,7 +137,7 @@ export function AddAssetModal(props: PropType) {
                 <div className="relative">
                   <button
                     type="button"
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    onClick={() => setIsAssetDropdownOpen(!isAssetDropdownOpen)}
                     className="w-full px-4 py-3 cursor-pointer bg-slate-800 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:outline-none flex items-center justify-between"
                   >
                     <div className="flex items-center space-x-3">
@@ -124,12 +173,12 @@ export function AddAssetModal(props: PropType) {
                     <SvgIcon
                       name="chevronDown"
                       className={`w-5 h-5 text-slate-400 transition-transform ${
-                        isDropdownOpen ? "rotate-180" : ""
+                        isAssetDropdownOpen ? "rotate-180" : ""
                       }`}
                     />
                   </button>
 
-                  {isDropdownOpen && (
+                  {isAssetDropdownOpen && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
                       {dropdownData.map((currency) => (
                         <button
@@ -202,6 +251,61 @@ export function AddAssetModal(props: PropType) {
                   name="averagePrice"
                 />
               </div>
+            )}
+            <label className="block text-sm font-medium text-slate-300 mb-2">카테고리</label>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                className="w-full px-4 py-3 cursor-pointer bg-slate-800 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:outline-none flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-3">
+                  {selectedCategory &&
+                  category?.find((c) => c.code === selectedCategory)?.name.ko ? (
+                    <p className="font-medium">
+                      {category.find((c) => c.code === selectedCategory)?.name.ko}
+                    </p>
+                  ) : (
+                    <span className="text-slate-400">카테고리를 선택해주세요</span>
+                  )}
+                </div>
+                <SvgIcon
+                  name="chevronDown"
+                  className={`w-5 h-5 text-slate-400 transition-transform ${
+                    isCategoryDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              {isCategoryDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                  {category.map((el) => (
+                    <button
+                      key={el.id}
+                      type="button"
+                      onClick={() => handleCategorySelect(el.code)}
+                      className={`w-full px-4 py-3 flex items-center space-x-3 hover:bg-slate-700 transition-colors text-left ${
+                        selectedCategory === el.code ? "bg-blue-500/20 text-blue-400" : "text-white"
+                      }`}
+                    >
+                      {el.name.ko}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {selectedCategory && (
+              <>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  카테고리 상세
+                </label>
+                <input
+                  type="text"
+                  placeholder={`예) ${categoryNamePlaceholder}`}
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
+                  name="categoryName"
+                  required
+                />
+              </>
             )}
           </div>
         </div>

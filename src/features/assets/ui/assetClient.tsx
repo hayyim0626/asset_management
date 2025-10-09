@@ -1,7 +1,13 @@
 "use client";
 import React, { useState, useActionState, useEffect, useMemo } from "react";
 import { AssetSection } from "./assetSection";
-import { AssetType, CurrencyType, CoinlistType, AssetList } from "@/entities/assets/api/types";
+import {
+  AssetType,
+  CurrencyType,
+  CoinlistType,
+  AssetList,
+  Category
+} from "@/entities/assets/api/types";
 import { AddAssetModal, EditAssetModal } from "@/features/assets/ui";
 import { formatKrw } from "@/shared/lib/functions";
 import toast from "react-hot-toast";
@@ -16,13 +22,21 @@ export interface FormState {
 
 interface PropType {
   handleAdd: (prevState: FormState, formData: FormData) => Promise<FormState>;
-  handleRemove: (prevState: FormState, formData: FormData) => Promise<FormState>;
+  handleEdit: (prevState: FormState, formData: FormData) => Promise<FormState>;
   data: AssetType;
   currencyList: CurrencyType[];
   coinList: CoinlistType[];
+  category: Category;
 }
 
-export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinList }: PropType) {
+export function AssetClient({
+  handleAdd,
+  handleEdit,
+  data,
+  currencyList,
+  coinList,
+  category
+}: PropType) {
   const [isAddModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [assetType, setAssetType] = useState<"crypto" | "stocks" | "cash" | null>(null);
@@ -35,7 +49,7 @@ export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinL
     date: Date.now()
   });
 
-  const [removeState, removeFormAction, isRemovePending] = useActionState(handleRemove, {
+  const [removeState, removeFormAction, isRemovePending] = useActionState(handleEdit, {
     success: false,
     error: null,
     message: null,
@@ -142,6 +156,7 @@ export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinL
           totalValue={data.cash.totalValue}
           assets={data.cash?.assets || []}
           type="cash"
+          category={category["cash"]}
         />
         <AssetSection
           openAddModal={openAddModal}
@@ -150,6 +165,7 @@ export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinL
           totalValue={data.crypto.totalValue}
           assets={data.crypto?.assets || []}
           type="crypto"
+          category={category["crypto"]}
         />
         <AssetSection
           openAddModal={openAddModal}
@@ -158,6 +174,7 @@ export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinL
           totalValue={data.stocks.totalValue}
           assets={data.stocks?.assets || []}
           type="stocks"
+          category={category["stocks"]}
         />
       </div>
 
@@ -171,6 +188,7 @@ export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinL
         setAssetType={setAssetType}
         isAddPending={isAddPending}
         dropdownData={dropdownData}
+        category={category[assetType!]}
       />
       <EditAssetModal
         isOpen={isEditModalOpen}

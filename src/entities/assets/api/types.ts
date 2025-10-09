@@ -13,7 +13,7 @@ export type AssetInfo = {
 export type AssetList = {
   amount: number;
   symbol: string;
-  categories: Category[];
+  categories: UserCategories[];
   currentPrice: { krw: number; usd: number };
   id: string;
   image: string;
@@ -21,7 +21,7 @@ export type AssetList = {
   value: { krw: number; usd: number };
 };
 
-export type Category = {
+export type UserCategories = {
   amount: number;
   category: string;
   category_name: string;
@@ -46,3 +46,15 @@ export type CoinlistType = {
   volume24hUsd: number | null;
   lastUpdated: string;
 };
+
+export type CategoryList = {
+  code: string;
+  name: { en: string; ko: string };
+  id: number;
+};
+
+export interface Category {
+  cash: CategoryList[];
+  crypto: CategoryList[];
+  stocks: CategoryList[];
+}

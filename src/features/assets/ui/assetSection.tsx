@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { AssetList, CategoryList } from "@/entities/assets/api/types";
 import { formatKrw } from "@/shared/lib/functions";
-import { AssetList } from "@/entities/assets/api/types";
-import Image from "next/image";
+import { ListButton } from "./listButton";
+import { SvgIcon } from "@/shared/ui";
 
 interface PropType {
   openAddModal: (type: "crypto" | "stocks" | "cash") => void;
@@ -12,36 +13,8 @@ interface PropType {
   totalValue: { krw: number; usd: number };
   assets: AssetList[];
   type: "crypto" | "stocks" | "cash";
+  category: CategoryList[];
 }
-
-const PlusIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg
-    className={`${className} cursor-pointer`}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-  </svg>
-);
-
-const EditIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg
-    className={`${className} cursor-pointer`}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-    />
-  </svg>
-);
 
 export function AssetSection({
   openAddModal,
@@ -49,8 +22,23 @@ export function AssetSection({
   title,
   totalValue,
   assets,
-  type
+  type,
+  category
 }: PropType) {
+  const [expandedAssets, setExpandedAssets] = useState<Set<string>>(new Set());
+
+  const toggleAsset = (id: string) => {
+    setExpandedAssets((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
       <div className="flex items-center justify-between mb-6">
@@ -62,54 +50,69 @@ export function AssetSection({
           onClick={() => openAddModal(type)}
           className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg transition-colors"
         >
-          <PlusIcon className="w-5 h-5 text-white" />
+          <SvgIcon name="plus" className="w-5 h-5 text-white cursor-pointer" />
         </button>
       </div>
 
       <div className="space-y-3">
-        {assets.map((asset, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between py-3 px-4 bg-slate-800/50 rounded-lg border border-slate-700/50"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-full bg-slate-800 flex justify-center items-center">
-                <span className="text-3xl">
-                  {type === "cash" ? (
-                    asset.image //emoji
-                  ) : (
-                    <Image
-                      src={asset.image}
-                      width={26}
-                      height={26}
-                      alt="coin_img"
-                      className="rounded-full"
-                    />
-                  )}
-                </span>
-              </div>
-              <div>
-                <p className="text-white font-medium">{asset.name}</p>
-                <p className="text-slate-400 text-sm">
-                  1{type === "stocks" ? "주" : asset.symbol} ≈ {formatKrw(asset.currentPrice.krw)}
-                </p>
+        {assets.map((asset, index) => {
+          const isExpanded = expandedAssets.has(asset.id);
+          return (
+            <div key={index} className="bg-slate-800/50 rounded-lg border border-slate-700/50">
+              <ListButton
+                type={type}
+                toggleAsset={toggleAsset}
+                asset={asset}
+                expandedAssets={expandedAssets}
+              />
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                }`}
+              >
+                {asset.categories && asset.categories.length > 0 && (
+                  <div className="px-4 pb-3 space-y-2 border-t border-slate-700/50 pt-3">
+                    {asset.categories.map((el) => {
+                      const name = category.find((cat) => cat.code === el.category)?.name.ko;
+                      return (
+                        <div
+                          key={el.id}
+                          className="flex items-center justify-between py-2 px-3 bg-slate-700/30 rounded-md"
+                        >
+                          <div>
+                            <p className="text-slate-300 text-sm font-medium">{name}</p>
+                            <p className="text-slate-500 text-xs">{el.category_name}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-right">
+                              <p className="text-slate-300 text-sm">
+                                {formatKrw(el.amount * asset.currentPrice.krw)}
+                              </p>
+                              <p className="text-slate-400 text-xs">
+                                {type === "cash"
+                                  ? `${el.amount.toLocaleString()} ${asset.symbol}`
+                                  : `${el.amount} ${asset.symbol}`}
+                              </p>
+                            </div>
+                            <button
+                              className="w-5 h-5 cursor-pointer"
+                              onClick={() => openEditModal(type, asset)}
+                            >
+                              <SvgIcon
+                                name="edit"
+                                className="text-slate-500 hover:text-slate-600 transition-colors"
+                              />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="text-right">
-                <p className="text-white font-semibold">{formatKrw(asset.value.krw)}</p>
-                <p className="text-slate-400 text-sm">
-                  {type === "cash"
-                    ? `${asset.amount.toLocaleString()} ${asset.symbol}`
-                    : `${asset.amount} ${asset.symbol}`}
-                </p>
-              </div>
-              <button onClick={() => openEditModal(type, asset)}>
-                <EditIcon className="w-5 h-5 text-slate-500 hover:text-slate-600 transition-colors" />
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {assets.length === 0 && (

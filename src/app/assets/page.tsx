@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { AssetClient } from "@/features/assets/ui";
-import { addAsset, removeAsset } from "@/features/assets/api";
+import { addAsset, editAsset } from "@/features/assets/api";
 import { getAsset, getCurrency, getCoins, getAssetCategories } from "@/entities/assets/api";
 import { cookieUtils } from "@/shared/api/supabase/cookie";
 import type { FormState } from "@/features/assets/ui/assetClient";
@@ -8,7 +8,7 @@ import type { FormState } from "@/features/assets/ui/assetClient";
 export default async function AssetsPage() {
   const { getAccessToken } = await cookieUtils();
   const token = getAccessToken() as string;
-  const res = await getAsset(token);
+  const asset = await getAsset(token);
   const currency = await getCurrency();
   const coins = await getCoins();
   const categories = await getAssetCategories();
@@ -20,7 +20,9 @@ export default async function AssetsPage() {
         assetType: formData.get("assetType") as string,
         symbol: formData.get("symbol") as string,
         amount: Number(formData.get("amount")),
-        averagePrice: Number(formData.get("averagePrice"))
+        averagePrice: Number(formData.get("averagePrice")),
+        category: formData.get("category") as string,
+        categoryName: formData.get("categoryName") as string
       },
       token
     );
@@ -37,12 +39,9 @@ export default async function AssetsPage() {
     };
   };
 
-  const handleRemoveAsset = async (
-    prevState: FormState,
-    formData: FormData
-  ): Promise<FormState> => {
+  const handleEditAsset = async (prevState: FormState, formData: FormData): Promise<FormState> => {
     "use server";
-    const res = await removeAsset(
+    const res = await editAsset(
       {
         assetType: formData.get("assetType") as string,
         symbol: formData.get("symbol") as string,
@@ -68,10 +67,11 @@ export default async function AssetsPage() {
       <div className="min-h-screen bg-slate-950">
         <AssetClient
           handleAdd={handleAddAsset}
-          handleRemove={handleRemoveAsset}
-          data={res.data}
+          handleEdit={handleEditAsset}
+          data={asset.data}
           currencyList={currency.data}
           coinList={coins.data}
+          category={categories.data}
         />
       </div>
     </>
