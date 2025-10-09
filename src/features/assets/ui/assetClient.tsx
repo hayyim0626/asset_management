@@ -5,6 +5,7 @@ import { AssetType, CurrencyType, CoinlistType, AssetList } from "@/entities/ass
 import { AddAssetModal, EditAssetModal } from "@/features/assets/ui";
 import { formatKrw } from "@/shared/lib/functions";
 import toast from "react-hot-toast";
+import { SvgIcon } from "@/shared/ui";
 
 export interface FormState {
   success: boolean;
@@ -20,18 +21,6 @@ interface PropType {
   currencyList: CurrencyType[];
   coinList: CoinlistType[];
 }
-
-const PlusIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg
-    className={`${className} cursor-pointer`}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-  </svg>
-);
 
 export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinList }: PropType) {
   const [isAddModalOpen, setIsModalOpen] = useState(false);
@@ -119,7 +108,7 @@ export function AssetClient({ handleAdd, handleRemove, data, currencyList, coinL
               }}
               className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 cursor-pointer text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
             >
-              <PlusIcon className="w-5 h-5" />
+              <SvgIcon name="plus" />
               <span>첫 번째 자산 추가하기</span>
             </button>
           </div>

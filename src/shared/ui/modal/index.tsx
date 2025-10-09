@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { SvgIcon } from "../svgIcon";
 
 interface PropType {
   isOpen: boolean;
@@ -8,23 +9,6 @@ interface PropType {
   children: React.ReactNode;
   title: string;
 }
-
-const XIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg
-    className={`${className} cursor-pointer`}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M6 18L18 6M6 6l12 12"
-    />
-  </svg>
-);
 
 export function Modal({ isOpen, onClose, children, title }: PropType) {
   if (!isOpen) return null;
@@ -45,9 +29,9 @@ export function Modal({ isOpen, onClose, children, title }: PropType) {
           <h2 className="text-xl font-semibold text-white">{title}</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors p-1"
+            className="text-slate-400 hover:text-white transition-colors p-1 cursor-pointer"
           >
-            <XIcon className="w-6 h-6" />
+            <SvgIcon name="x" className="w-6 h-6" />
           </button>
         </div>
         {children}

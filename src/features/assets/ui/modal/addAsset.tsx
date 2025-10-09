@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { CoinlistType, CurrencyType } from "@/entities/assets/api/types";
-import { Modal } from "@/shared/ui";
+import { Modal, SvgIcon } from "@/shared/ui";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
 
 interface PropType {
@@ -44,18 +44,6 @@ export function AddAssetModal(props: PropType) {
     setSelectedAsset(currencyCode);
     setIsDropdownOpen(false);
   };
-
-  const ChevronDownIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-    </svg>
-  );
 
   return (
     <Modal title="자산 추가" isOpen={isOpen} onClose={onClose}>
@@ -133,7 +121,8 @@ export function AddAssetModal(props: PropType) {
                         <span className="text-slate-400">통화를 선택해주세요</span>
                       )}
                     </div>
-                    <ChevronDownIcon
+                    <SvgIcon
+                      name="chevronDown"
                       className={`w-5 h-5 text-slate-400 transition-transform ${
                         isDropdownOpen ? "rotate-180" : ""
                       }`}
