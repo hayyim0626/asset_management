@@ -1,27 +1,29 @@
-export type AssetType = {
-  totalValue: { krw: number; usd: number };
-  cash: AssetInfo;
-  crypto: AssetInfo;
-  stocks: AssetInfo;
+type FiatValue = { krw: number; usd: number };
+
+export type UserPortfolio = {
+  totalValue: FiatValue;
+  cash: AssetGroup;
+  crypto: AssetGroup;
+  stocks: AssetGroup;
 };
 
-export type AssetInfo = {
-  totalValue: { krw: number; usd: number };
-  assets: [];
+export type AssetGroup = {
+  totalValue: FiatValue;
+  assets: AssetItem[];
 };
 
-export type AssetList = {
+export type AssetItem = {
   amount: number;
   symbol: string;
-  categories: UserCategories[];
-  currentPrice: { krw: number; usd: number };
+  categories: UserCategory[];
+  currentPrice: FiatValue;
   id: string;
   image: string;
   name: string;
-  value: { krw: number; usd: number };
+  value: FiatValue;
 };
 
-export type UserCategories = {
+export type UserCategory = {
   amount: number;
   category: string;
   category_name: string;
@@ -49,7 +51,7 @@ export type CoinlistType = {
 
 export type CategoryList = {
   code: string;
-  name: { en: string; ko: string };
+  name: string;
   id: number;
 };
 

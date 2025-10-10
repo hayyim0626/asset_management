@@ -1,7 +1,9 @@
+import type { AssetType } from "@/entities/assets/types";
+
 export const ASSET_LIST: {
   name: string;
   emoji: string;
-  value: "crypto" | "stocks" | "cash";
+  value: AssetType;
 }[] = [
   {
     name: "코인",

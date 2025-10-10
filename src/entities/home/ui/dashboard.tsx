@@ -4,7 +4,7 @@ import { getAsset } from "@/entities/assets/api";
 import { getCoinPrice } from "@/entities/crypto/api/getCoinPrice";
 import { cookieUtils } from "@/shared/api/supabase/cookie";
 import { formatKrw, formatUsd } from "@/shared/lib/functions";
-import { AssetInfo } from "@/entities/assets/api/types";
+import { AssetGroup } from "@/entities/assets/api/types";
 import { CoinPrice } from "@/entities/crypto/types";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
 
@@ -18,8 +18,8 @@ export async function Dashboard() {
     const obj = { ...assetData.data };
     delete obj.totalValue;
 
-    return (Object.values(obj) as AssetInfo[])
-      .map((el: AssetInfo, idx) => ({
+    return (Object.values(obj) as AssetGroup[])
+      .map((el: AssetGroup, idx) => ({
         name: Object.keys(obj)[idx],
         totalValue: el.totalValue
       }))

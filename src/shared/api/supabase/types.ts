@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// types/supabase-auth.ts
 
 export interface SupabaseIdentity {
   identity_id: string;

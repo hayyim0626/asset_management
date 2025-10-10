@@ -1,13 +1,14 @@
 "use client";
-import { AssetList } from "@/entities/assets/api/types";
+import type { AssetItem } from "@/entities/assets/api/types";
+import type { AssetType } from "@/entities/assets/types";
 import { formatKrw } from "@/shared/lib/functions";
 import { SvgIcon } from "@/shared/ui";
 import Image from "next/image";
 
 interface PropType {
-  asset: AssetList;
+  asset: AssetItem;
   toggleAsset: (id: string) => void;
-  type: "crypto" | "stocks" | "cash";
+  type: AssetType;
   expandedAssets: Set<string>;
 }
 
