@@ -5,6 +5,7 @@ import Image from "next/image";
 import { CategoryList, CoinlistType, CurrencyType } from "@/entities/assets/api/types";
 import { Modal, SvgIcon } from "@/shared/ui";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
+import type { AssetType } from "@/entities/assets/types";
 
 interface PropType {
   isOpen: boolean;
@@ -12,11 +13,11 @@ interface PropType {
   isFirstAdd: boolean;
   setIsFirstAdd: (val: boolean) => void;
   addFormAction: (data: FormData) => void;
-  assetType: "crypto" | "stocks" | "cash" | null;
-  setAssetType: (type: "crypto" | "stocks" | "cash" | null) => void;
+  assetType: AssetType | null;
+  setAssetType: (type: AssetType | null) => void;
   isAddPending: boolean;
   dropdownData: CurrencyType[] | CoinlistType[];
-  category: CategoryList[];
+  categoryList: CategoryList[];
 }
 
 export function AddAssetModal(props: PropType) {
@@ -30,7 +31,7 @@ export function AddAssetModal(props: PropType) {
     setAssetType,
     isAddPending,
     dropdownData,
-    category
+    categoryList
   } = props;
   const [isAssetDropdownOpen, setIsAssetDropdownOpen] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
@@ -261,9 +262,9 @@ export function AddAssetModal(props: PropType) {
               >
                 <div className="flex items-center space-x-3">
                   {selectedCategory &&
-                  category?.find((c) => c.code === selectedCategory)?.name.ko ? (
+                  categoryList?.find((c) => c.code === selectedCategory)?.name ? (
                     <p className="font-medium">
-                      {category.find((c) => c.code === selectedCategory)?.name.ko}
+                      {categoryList.find((c) => c.code === selectedCategory)?.name}
                     </p>
                   ) : (
                     <span className="text-slate-400">카테고리를 선택해주세요</span>
@@ -278,7 +279,7 @@ export function AddAssetModal(props: PropType) {
               </button>
               {isCategoryDropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                  {category.map((el) => (
+                  {categoryList.map((el) => (
                     <button
                       key={el.id}
                       type="button"
@@ -287,7 +288,7 @@ export function AddAssetModal(props: PropType) {
                         selectedCategory === el.code ? "bg-blue-500/20 text-blue-400" : "text-white"
                       }`}
                     >
-                      {el.name.ko}
+                      {el.name}
                     </button>
                   ))}
                 </div>

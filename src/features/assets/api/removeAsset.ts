@@ -5,6 +5,8 @@ interface FormData {
   assetType: string;
   symbol: string;
   amount: number;
+  category?: string;
+  categoryName?: string;
 }
 
 export const removeAsset = async (formData: FormData, accessToken: string) => {
@@ -12,7 +14,9 @@ export const removeAsset = async (formData: FormData, accessToken: string) => {
     const requestBody = {
       p_asset_type: formData.assetType,
       p_symbol: formData.symbol,
-      p_amount: formData.amount
+      p_amount: formData.amount,
+      p_category: formData.category || "other",
+      p_category_name: formData.categoryName || "기타"
     };
 
     const res = await fetch(`${default_url}/remove_asset`, {

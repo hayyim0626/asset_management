@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { AssetList } from "@/entities/assets/api/types";
+import type { AssetType } from "@/entities/assets/types";
+import type { CategoryList } from "@/entities/assets/api/types";
+import type { EditAssetType } from "../assetSection";
 import { Modal } from "@/shared/ui";
 import { formatUsd } from "@/shared/lib/functions";
-import { FormState } from "../assetClient";
+import { FormState } from "@/shared/types";
 
 type EditType = "ADD" | "REMOVE" | "DELETE";
 
@@ -14,12 +16,13 @@ interface PropType {
   onClose: () => void;
   addFormAction: (data: FormData) => void;
   removeFormAction: (data: FormData) => void;
-  assetType: "crypto" | "stocks" | "cash" | null;
-  assetToEdit: AssetList | null;
+  assetType: AssetType | null;
+  selectedEditData: EditAssetType | null;
   isAddPending: boolean;
   isRemovePending: boolean;
   addState: FormState;
   removeState: FormState;
+  categoryList: CategoryList[];
 }
 
 function EditButton({
@@ -62,11 +65,12 @@ export function EditAssetModal(props: PropType) {
     addFormAction,
     removeFormAction,
     assetType,
-    assetToEdit,
+    selectedEditData,
     isAddPending,
     isRemovePending,
     addState,
-    removeState
+    removeState,
+    categoryList
   } = props;
   const [editAction, setEditAction] = useState<EditType>("ADD");
 
@@ -74,22 +78,30 @@ export function EditAssetModal(props: PropType) {
     if (!isOpen) setEditAction("ADD");
   }, [isOpen]);
 
+  const category = categoryList?.find((el) => el.code === selectedEditData?.category)?.name;
+
   return (
     <Modal title="자산 편집" isOpen={isOpen} onClose={onClose}>
       <form action={editAction === "ADD" ? addFormAction : removeFormAction}>
         {assetType && <input type="hidden" name="assetType" value={assetType} />}
-        {assetToEdit && <input type="hidden" name="symbol" value={assetToEdit.symbol} />}
+        {selectedEditData && <input type="hidden" name="symbol" value={selectedEditData.symbol} />}
+        {selectedEditData && (
+          <input type="hidden" name="category" value={selectedEditData.category} />
+        )}
+        {selectedEditData && (
+          <input type="hidden" name="categoryName" value={selectedEditData.category_name} />
+        )}
         <div className="p-6 space-y-6">
-          {assetToEdit && (
+          {selectedEditData && (
             <>
               <div className="flex items-center space-x-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
                 <div className="w-10 h-10 rounded-full bg-slate-800 flex justify-center items-center">
                   <span className="text-3xl">
                     {assetType === "cash" ? (
-                      assetToEdit.image
+                      selectedEditData.image
                     ) : (
                       <Image
-                        src={assetToEdit.image}
+                        src={selectedEditData.image}
                         width={26}
                         height={26}
                         alt="asset_img"
@@ -99,9 +111,11 @@ export function EditAssetModal(props: PropType) {
                   </span>
                 </div>
                 <div>
-                  <p className="text-white font-medium">{assetToEdit.name}</p>
+                  <p className="text-white font-medium">
+                    {selectedEditData.name} / {category} ({selectedEditData.category_name})
+                  </p>
                   <p className="text-slate-400 text-sm">
-                    현재 보유량: {formatUsd(assetToEdit.amount)} {assetToEdit.symbol}
+                    현재 보유량: {formatUsd(selectedEditData.amount)} {selectedEditData.symbol}
                   </p>
                 </div>
               </div>
@@ -144,11 +158,14 @@ export function EditAssetModal(props: PropType) {
                     <span className="text-red-400 text-lg">⚠️</span>
                   </div>
                   <p className="text-red-300 text-sm">
-                    <strong>{assetToEdit.name}</strong> 자산을 완전히 삭제합니다.
+                    <strong>
+                      {selectedEditData.name} / {category} ({selectedEditData.category_name})
+                    </strong>{" "}
+                    자산을 완전히 삭제합니다.
                     <br />
                     <strong>한 번 삭제한 자산은 다시 되돌릴 수 없어요.</strong>
                   </p>
-                  <input type="hidden" name="amount" value={assetToEdit.amount} />
+                  <input type="hidden" name="amount" value={selectedEditData.amount} />
                 </div>
               ) : (
                 <div>
@@ -161,11 +178,11 @@ export function EditAssetModal(props: PropType) {
                     step={
                       assetType === "crypto" ? "0.00000001" : assetType === "stocks" ? "1" : "0.01"
                     }
-                    max={editAction === "REMOVE" ? assetToEdit.amount : undefined}
+                    max={editAction === "REMOVE" ? selectedEditData.amount : undefined}
                     placeholder={
                       editAction === "ADD"
                         ? "추가할 수량 입력"
-                        : `최대 ${assetToEdit.amount} ${assetToEdit.symbol}`
+                        : `최대 ${selectedEditData.amount} ${selectedEditData.symbol}`
                     }
                     className={`w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none ${
                       editAction === "ADD" ? "focus:border-blue-500" : "focus:border-orange-500"

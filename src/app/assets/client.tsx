@@ -1,37 +1,33 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useState, useActionState, useEffect, useMemo } from "react";
-import { AssetSection } from "./assetSection";
-import {
-  AssetType,
+import { AssetSection } from "@/features/assets/ui/assetSection";
+import type {
+  UserPortfolio,
   CurrencyType,
   CoinlistType,
-  AssetList,
   Category
 } from "@/entities/assets/api/types";
+import type { EditAssetType } from "@/features/assets/ui/assetSection";
 import { AddAssetModal, EditAssetModal } from "@/features/assets/ui";
 import { formatKrw } from "@/shared/lib/functions";
+import { FormState } from "@/shared/types";
+import { AssetType } from "@/entities/assets/types";
 import toast from "react-hot-toast";
 import { SvgIcon } from "@/shared/ui";
 
-export interface FormState {
-  success: boolean;
-  error: string | null;
-  message: string | null;
-  date: number;
-}
-
 interface PropType {
-  handleAdd: (prevState: FormState, formData: FormData) => Promise<FormState>;
-  handleEdit: (prevState: FormState, formData: FormData) => Promise<FormState>;
-  data: AssetType;
+  handleAddAsset: (prevState: FormState, formData: FormData) => Promise<FormState>;
+  handleRemoveAsset: (prevState: FormState, formData: FormData) => Promise<FormState>;
+  data: UserPortfolio;
   currencyList: CurrencyType[];
   coinList: CoinlistType[];
   category: Category;
 }
 
 export function AssetClient({
-  handleAdd,
-  handleEdit,
+  handleAddAsset,
+  handleRemoveAsset,
   data,
   currencyList,
   coinList,
@@ -39,17 +35,17 @@ export function AssetClient({
 }: PropType) {
   const [isAddModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [assetType, setAssetType] = useState<"crypto" | "stocks" | "cash" | null>(null);
-  const [assetToEdit, setAssetToEdit] = useState<AssetList | null>(null);
+  const [assetType, setAssetType] = useState<AssetType | null>(null);
+  const [selectedEditData, setSelectedEditData] = useState<EditAssetType | null>(null);
   const [isFirstAdd, setIsFirstAdd] = useState(false);
-  const [addState, addFormAction, isAddPending] = useActionState(handleAdd, {
+  const [addState, addFormAction, isAddPending] = useActionState(handleAddAsset, {
     success: false,
     error: null,
     message: null,
     date: Date.now()
   });
 
-  const [removeState, removeFormAction, isRemovePending] = useActionState(handleEdit, {
+  const [removeState, removeFormAction, isRemovePending] = useActionState(handleRemoveAsset, {
     success: false,
     error: null,
     message: null,
@@ -81,7 +77,7 @@ export function AssetClient({
     }
   }, [assetType]);
 
-  const openAddModal = (assetType: "crypto" | "stocks" | "cash" | null = null) => {
+  const openAddModal = (assetType: AssetType | null = null) => {
     setAssetType(assetType);
     setIsModalOpen(true);
   };
@@ -91,25 +87,23 @@ export function AssetClient({
     setAssetType(null);
   };
 
-  const openEditModal = (assetType: "crypto" | "stocks" | "cash", asset: AssetList) => {
+  const openEditModal = (assetType: AssetType, asset: EditAssetType) => {
     setAssetType(assetType);
-    setAssetToEdit(asset);
+    setSelectedEditData(asset);
     setIsEditModalOpen(true);
   };
 
   const closeEditModal = () => {
     setIsEditModalOpen(false);
     setAssetType(null);
-    setAssetToEdit(null);
+    setSelectedEditData(null);
   };
 
   return (
     <div className="max-w-7xl sm:px-6 lg:p-8 mx-auto space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">내 자산 현황</h1>
-          <p className="text-slate-400">보유 자산을 관리하고 추적하세요</p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-white mb-2">내 자산 현황</h1>
+        <p className="text-slate-400">보유 자산을 관리하고 추적하세요</p>
       </div>
       <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl border border-blue-500/30 p-8">
         {data.totalValue.krw === 0 ? (
@@ -188,7 +182,7 @@ export function AssetClient({
         setAssetType={setAssetType}
         isAddPending={isAddPending}
         dropdownData={dropdownData}
-        category={category[assetType!]}
+        categoryList={category[assetType!]}
       />
       <EditAssetModal
         isOpen={isEditModalOpen}
@@ -196,11 +190,12 @@ export function AssetClient({
         addFormAction={addFormAction}
         removeFormAction={removeFormAction}
         assetType={assetType}
-        assetToEdit={assetToEdit}
+        selectedEditData={selectedEditData}
         isAddPending={isAddPending}
         isRemovePending={isRemovePending}
         addState={addState}
         removeState={removeState}
+        categoryList={category[assetType!]}
       />
     </div>
   );

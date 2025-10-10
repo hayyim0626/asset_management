@@ -1,9 +1,9 @@
 import { revalidatePath } from "next/cache";
-import { AssetClient } from "@/features/assets/ui";
-import { addAsset, editAsset } from "@/features/assets/api";
+import { AssetClient } from "./client";
+import { addAsset, removeAsset } from "@/features/assets/api";
 import { getAsset, getCurrency, getCoins, getAssetCategories } from "@/entities/assets/api";
 import { cookieUtils } from "@/shared/api/supabase/cookie";
-import type { FormState } from "@/features/assets/ui/assetClient";
+import { FormState } from "@/shared/types";
 
 export default async function AssetsPage() {
   const { getAccessToken } = await cookieUtils();
@@ -39,13 +39,18 @@ export default async function AssetsPage() {
     };
   };
 
-  const handleEditAsset = async (prevState: FormState, formData: FormData): Promise<FormState> => {
+  const handleRemoveAsset = async (
+    prevState: FormState,
+    formData: FormData
+  ): Promise<FormState> => {
     "use server";
-    const res = await editAsset(
+    const res = await removeAsset(
       {
         assetType: formData.get("assetType") as string,
         symbol: formData.get("symbol") as string,
-        amount: Number(formData.get("amount"))
+        amount: Number(formData.get("amount")),
+        category: formData.get("category") as string,
+        categoryName: formData.get("categoryName") as string
       },
       token
     );
@@ -66,8 +71,8 @@ export default async function AssetsPage() {
     <>
       <div className="min-h-screen bg-slate-950">
         <AssetClient
-          handleAdd={handleAddAsset}
-          handleEdit={handleEditAsset}
+          handleAddAsset={handleAddAsset}
+          handleRemoveAsset={handleRemoveAsset}
           data={asset.data}
           currencyList={currency.data}
           coinList={coins.data}

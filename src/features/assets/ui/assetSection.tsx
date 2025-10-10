@@ -1,18 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
-import { AssetList, CategoryList } from "@/entities/assets/api/types";
+import type { AssetItem, CategoryList, UserCategory } from "@/entities/assets/api/types";
+import type { AssetType } from "@/entities/assets/types";
 import { formatKrw } from "@/shared/lib/functions";
 import { ListButton } from "./listButton";
 import { SvgIcon } from "@/shared/ui";
 
+export interface EditAssetType extends UserCategory {
+  symbol: string;
+  image: string;
+  name: string;
+}
+
 interface PropType {
-  openAddModal: (type: "crypto" | "stocks" | "cash") => void;
-  openEditModal: (type: "crypto" | "stocks" | "cash", asset: AssetList) => void;
+  openAddModal: (type: AssetType) => void;
+  openEditModal: (type: AssetType, asset: EditAssetType) => void;
   title: string;
   totalValue: { krw: number; usd: number };
-  assets: AssetList[];
-  type: "crypto" | "stocks" | "cash";
+  assets: AssetItem[];
+  type: AssetType;
   category: CategoryList[];
 }
 
@@ -73,7 +80,7 @@ export function AssetSection({
                 {asset.categories && asset.categories.length > 0 && (
                   <div className="px-4 pb-3 space-y-2 border-t border-slate-700/50 pt-3">
                     {asset.categories.map((el) => {
-                      const name = category.find((cat) => cat.code === el.category)?.name.ko;
+                      const name = category.find((cat) => cat.code === el.category)?.name;
                       return (
                         <div
                           key={el.id}
@@ -96,7 +103,14 @@ export function AssetSection({
                             </div>
                             <button
                               className="w-5 h-5 cursor-pointer"
-                              onClick={() => openEditModal(type, asset)}
+                              onClick={() =>
+                                openEditModal(type, {
+                                  symbol: asset.symbol,
+                                  image: asset.image,
+                                  name: asset.name,
+                                  ...el
+                                })
+                              }
                             >
                               <SvgIcon
                                 name="edit"
