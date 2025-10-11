@@ -1,23 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useActionState } from "react";
 import Image from "next/image";
 import { CategoryList, CoinlistType, CurrencyType } from "@/entities/assets/api/types";
 import { Modal, SvgIcon } from "@/shared/ui";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
 import type { AssetType } from "@/entities/assets/types";
+import { FormState } from "@/shared/types";
+import toast from "react-hot-toast";
 
 interface PropType {
   isOpen: boolean;
   onClose: () => void;
   isFirstAdd: boolean;
   setIsFirstAdd: (val: boolean) => void;
-  addFormAction: (data: FormData) => void;
   assetType: AssetType | null;
   setAssetType: (type: AssetType | null) => void;
-  isAddPending: boolean;
   dropdownData: CurrencyType[] | CoinlistType[];
   categoryList: CategoryList[];
+  handleAddAsset: (prevState: FormState, formData: FormData) => Promise<FormState>;
 }
 
 export function AddAssetModal(props: PropType) {
@@ -26,17 +27,29 @@ export function AddAssetModal(props: PropType) {
     onClose,
     isFirstAdd,
     setIsFirstAdd,
-    addFormAction,
     assetType,
     setAssetType,
-    isAddPending,
     dropdownData,
-    categoryList
+    categoryList,
+    handleAddAsset
   } = props;
   const [isAssetDropdownOpen, setIsAssetDropdownOpen] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [addState, addFormAction, isAddPending] = useActionState(handleAddAsset, {
+    success: false,
+    error: null,
+    message: null,
+    date: Date.now()
+  });
+
+  useEffect(() => {
+    if (addState.success && addState.date) {
+      onClose();
+      toast.success(addState.message);
+    }
+  }, [addState.success, addState.date]);
 
   useEffect(() => {
     if (!isOpen) {

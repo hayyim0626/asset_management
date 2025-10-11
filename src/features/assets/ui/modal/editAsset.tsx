@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useActionState } from "react";
 import Image from "next/image";
 import type { AssetType } from "@/entities/assets/types";
 import type { CategoryList } from "@/entities/assets/api/types";
@@ -8,20 +8,17 @@ import type { EditAssetType } from "../assetSection";
 import { Modal } from "@/shared/ui";
 import { formatUsd } from "@/shared/lib/functions";
 import { FormState } from "@/shared/types";
+import toast from "react-hot-toast";
 
 type EditType = "ADD" | "REMOVE" | "DELETE";
 
 interface PropType {
   isOpen: boolean;
   onClose: () => void;
-  addFormAction: (data: FormData) => void;
-  removeFormAction: (data: FormData) => void;
+  handleAddAsset: (prevState: FormState, formData: FormData) => Promise<FormState>;
+  handleRemoveAsset: (prevState: FormState, formData: FormData) => Promise<FormState>;
   assetType: AssetType | null;
   selectedEditData: EditAssetType | null;
-  isAddPending: boolean;
-  isRemovePending: boolean;
-  addState: FormState;
-  removeState: FormState;
   categoryList: CategoryList[];
 }
 
@@ -62,21 +59,44 @@ export function EditAssetModal(props: PropType) {
   const {
     isOpen,
     onClose,
-    addFormAction,
-    removeFormAction,
     assetType,
     selectedEditData,
-    isAddPending,
-    isRemovePending,
-    addState,
-    removeState,
+    handleAddAsset,
+    handleRemoveAsset,
     categoryList
   } = props;
   const [editAction, setEditAction] = useState<EditType>("ADD");
+  const [addState, addFormAction, isAddPending] = useActionState(handleAddAsset, {
+    success: false,
+    error: null,
+    message: null,
+    date: Date.now()
+  });
+
+  const [removeState, removeFormAction, isRemovePending] = useActionState(handleRemoveAsset, {
+    success: false,
+    error: null,
+    message: null,
+    date: Date.now()
+  });
 
   useEffect(() => {
     if (!isOpen) setEditAction("ADD");
   }, [isOpen]);
+
+  useEffect(() => {
+    if (addState.success && addState.date) {
+      onClose();
+      toast.success(addState.message);
+    }
+  }, [addState.success, addState.date]);
+
+  useEffect(() => {
+    if (removeState.success && removeState.date) {
+      onClose();
+      toast.success(removeState.message);
+    }
+  }, [removeState.success && removeState.date]);
 
   const category = categoryList?.find((el) => el.code === selectedEditData?.category)?.name;
 
@@ -96,19 +116,17 @@ export function EditAssetModal(props: PropType) {
             <>
               <div className="flex items-center space-x-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
                 <div className="w-10 h-10 rounded-full bg-slate-800 flex justify-center items-center">
-                  <span className="text-3xl">
-                    {assetType === "cash" ? (
-                      selectedEditData.image
-                    ) : (
-                      <Image
-                        src={selectedEditData.image}
-                        width={26}
-                        height={26}
-                        alt="asset_img"
-                        className="rounded-full"
-                      />
-                    )}
-                  </span>
+                  {assetType === "cash" ? (
+                    <span className="text-3xl">{selectedEditData.image}</span>
+                  ) : (
+                    <Image
+                      src={selectedEditData.image}
+                      width={26}
+                      height={26}
+                      alt="asset_img"
+                      className="rounded-full"
+                    />
+                  )}
                 </div>
                 <div>
                   <p className="text-white font-medium">

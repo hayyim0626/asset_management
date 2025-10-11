@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
-import React, { useState, useActionState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { AssetSection } from "@/features/assets/ui/assetSection";
 import type {
   UserPortfolio,
@@ -13,7 +13,6 @@ import { AddAssetModal, EditAssetModal } from "@/features/assets/ui";
 import { formatKrw } from "@/shared/lib/functions";
 import { FormState } from "@/shared/types";
 import { AssetType } from "@/entities/assets/types";
-import toast from "react-hot-toast";
 import { SvgIcon } from "@/shared/ui";
 
 interface PropType {
@@ -38,33 +37,6 @@ export function AssetClient({
   const [assetType, setAssetType] = useState<AssetType | null>(null);
   const [selectedEditData, setSelectedEditData] = useState<EditAssetType | null>(null);
   const [isFirstAdd, setIsFirstAdd] = useState(false);
-  const [addState, addFormAction, isAddPending] = useActionState(handleAddAsset, {
-    success: false,
-    error: null,
-    message: null,
-    date: Date.now()
-  });
-
-  const [removeState, removeFormAction, isRemovePending] = useActionState(handleRemoveAsset, {
-    success: false,
-    error: null,
-    message: null,
-    date: Date.now()
-  });
-
-  useEffect(() => {
-    if (addState.success && addState.date) {
-      closeAddModal();
-      toast.success(addState.message);
-    }
-  }, [addState.success, addState.date]);
-
-  useEffect(() => {
-    if (removeState.success && removeState.date) {
-      closeEditModal();
-      toast.success(removeState.message);
-    }
-  }, [removeState.success && removeState.date]);
 
   const dropdownData = useMemo(() => {
     switch (assetType) {
@@ -177,24 +149,19 @@ export function AssetClient({
         onClose={closeAddModal}
         isFirstAdd={isFirstAdd}
         setIsFirstAdd={setIsFirstAdd}
-        addFormAction={addFormAction}
         assetType={assetType}
         setAssetType={setAssetType}
-        isAddPending={isAddPending}
         dropdownData={dropdownData}
+        handleAddAsset={handleAddAsset}
         categoryList={category[assetType!]}
       />
       <EditAssetModal
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
-        addFormAction={addFormAction}
-        removeFormAction={removeFormAction}
         assetType={assetType}
         selectedEditData={selectedEditData}
-        isAddPending={isAddPending}
-        isRemovePending={isRemovePending}
-        addState={addState}
-        removeState={removeState}
+        handleAddAsset={handleAddAsset}
+        handleRemoveAsset={handleRemoveAsset}
         categoryList={category[assetType!]}
       />
     </div>
