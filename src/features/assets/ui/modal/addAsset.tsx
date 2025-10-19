@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, useActionState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import { CategoryList, CoinlistType, CurrencyType } from "@/entities/assets/api/types";
-import { Modal, SvgIcon } from "@/shared/ui";
+import { Modal, Dropdown } from "@/shared/ui";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
 import type { AssetType } from "@/entities/assets/types";
 import { FormState } from "@/shared/types";
-import toast from "react-hot-toast";
+import { useAddAssetForm } from "./useAddAssetForm";
 
 interface PropType {
   isOpen: boolean;
@@ -21,6 +21,13 @@ interface PropType {
   handleAddAsset: (prevState: FormState, formData: FormData) => Promise<FormState>;
 }
 
+const RenderImage = ({ assetType, image }: { assetType: "cash" | "crypto"; image: string }) =>
+  assetType === "cash" ? (
+    <span className="text-lg">{image}</span>
+  ) : (
+    <Image src={image} width={20} height={20} alt="asset_img" className="rounded-full" />
+  );
+
 export function AddAssetModal(props: PropType) {
   const {
     isOpen,
@@ -33,32 +40,22 @@ export function AddAssetModal(props: PropType) {
     categoryList,
     handleAddAsset
   } = props;
-  const [isAssetDropdownOpen, setIsAssetDropdownOpen] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
-  const [selectedAsset, setSelectedAsset] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [addState, addFormAction, isAddPending] = useActionState(handleAddAsset, {
-    success: false,
-    error: null,
-    message: null,
-    date: Date.now()
+
+  const {
+    selectedAsset,
+    selectedCategory,
+    isAddPending,
+    addFormAction,
+    handleCurrencySelect,
+    handleCategorySelect
+  } = useAddAssetForm({
+    isOpen,
+    handleAddAsset,
+    onClose,
+    setAssetType,
+    setIsFirstAdd
   });
-
-  useEffect(() => {
-    if (addState.success && addState.date) {
-      onClose();
-      toast.success(addState.message);
-    }
-  }, [addState.success, addState.date]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setAssetType(null);
-      setIsFirstAdd(false);
-      setSelectedAsset("");
-      setSelectedCategory("");
-    }
-  }, [isOpen]);
 
   const categoryNamePlaceholder = useMemo(() => {
     switch (assetType) {
@@ -92,16 +89,6 @@ export function AddAssetModal(props: PropType) {
         return "기타";
     }
   }, [assetType, selectedCategory]);
-
-  const handleCurrencySelect = (currencyCode: string) => {
-    setSelectedAsset(currencyCode);
-    setIsAssetDropdownOpen(false);
-  };
-
-  const handleCategorySelect = (code: string) => {
-    setSelectedCategory(code);
-    setIsCategoryDropdownOpen(false);
-  };
 
   return (
     <Modal title="자산 추가" isOpen={isOpen} onClose={onClose}>
@@ -148,84 +135,38 @@ export function AddAssetModal(props: PropType) {
               </label>
 
               {assetType !== "stocks" ? (
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsAssetDropdownOpen(!isAssetDropdownOpen)}
-                    className="w-full px-4 py-3 cursor-pointer bg-slate-800 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:outline-none flex items-center justify-between"
-                  >
-                    <div className="flex items-center space-x-3">
-                      {selectedAsset && dropdownData.find((c) => c.symbol === selectedAsset) ? (
-                        <>
-                          <span className="text-lg">
-                            {assetType === "cash" ? (
-                              dropdownData.find((c) => c.symbol === selectedAsset)?.image
-                            ) : (
-                              <Image
-                                src={
-                                  dropdownData.find((c) => c.symbol === selectedAsset)?.image || ""
-                                }
-                                width={20}
-                                height={20}
-                                alt="coin_img"
-                                className="rounded-full"
-                              />
-                            )}
-                          </span>
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium">{selectedAsset}</span>
-                            <span className="text-slate-400">-</span>
-                            <span className="text-sm text-slate-400">
-                              {dropdownData.find((c) => c.symbol === selectedAsset)?.name}
-                            </span>
-                          </div>
-                        </>
-                      ) : (
-                        <span className="text-slate-400">통화를 선택해주세요</span>
-                      )}
-                    </div>
-                    <SvgIcon
-                      name="chevronDown"
-                      className={`w-5 h-5 text-slate-400 transition-transform ${
-                        isAssetDropdownOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {isAssetDropdownOpen && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                      {dropdownData.map((currency) => (
-                        <button
-                          key={currency.symbol}
-                          type="button"
-                          onClick={() => handleCurrencySelect(currency.symbol)}
-                          className={`w-full px-4 py-3 flex items-center space-x-3 hover:bg-slate-700 transition-colors text-left ${
-                            selectedAsset === currency.symbol
-                              ? "bg-blue-500/20 text-blue-400"
-                              : "text-white"
-                          }`}
-                        >
-                          {assetType === "cash" ? (
-                            <span className="text-lg">{currency.image}</span>
-                          ) : (
-                            <Image
-                              src={currency.image}
-                              width={20}
-                              height={20}
-                              alt="coin_img"
-                              className="rounded-full"
-                            />
-                          )}
-                          <div className="flex items-center space-x-2 flex-1">
-                            <span className="font-medium">{currency.symbol}</span>
-                            <span>-</span>
-                            <span className="text-sm">{currency.name}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+                <Dropdown<CoinlistType | CurrencyType>
+                  items={dropdownData}
+                  value={selectedAsset}
+                  onSelect={handleCurrencySelect}
+                  getKey={(item) => item.symbol}
+                  getValue={(item) => item.symbol}
+                  placeholder={`${assetType === "cash" ? "통화를" : "코인을"} 선택해주세요`}
+                  renderTrigger={(selected: CoinlistType | CurrencyType) => (
+                    <>
+                      <div className="flex items-center space-x-3">
+                        {assetType && (
+                          <RenderImage assetType={assetType} image={selected.image || ""} />
+                        )}
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">{selected.symbol}</span>
+                          <span className="text-slate-400">-</span>
+                          <span className="text-sm text-slate-400">{selected.name}</span>
+                        </div>
+                      </div>
+                    </>
                   )}
-                </div>
+                  renderItem={(item) => (
+                    <>
+                      {assetType && <RenderImage assetType={assetType} image={item.image} />}
+                      <div className="flex items-center space-x-2 flex-1">
+                        <span className="font-medium">{item.symbol}</span>
+                        <span>-</span>
+                        <span className="text-sm">{item.name}</span>
+                      </div>
+                    </>
+                  )}
+                />
               ) : (
                 // 주식일 때 기존 입력 필드
                 <input
@@ -266,47 +207,18 @@ export function AddAssetModal(props: PropType) {
                 />
               </div>
             )}
-            <label className="block text-sm font-medium text-slate-300 mb-2">카테고리</label>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                className="w-full px-4 py-3 cursor-pointer bg-slate-800 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:outline-none flex items-center justify-between"
-              >
-                <div className="flex items-center space-x-3">
-                  {selectedCategory &&
-                  categoryList?.find((c) => c.code === selectedCategory)?.name ? (
-                    <p className="font-medium">
-                      {categoryList.find((c) => c.code === selectedCategory)?.name}
-                    </p>
-                  ) : (
-                    <span className="text-slate-400">카테고리를 선택해주세요</span>
-                  )}
-                </div>
-                <SvgIcon
-                  name="chevronDown"
-                  className={`w-5 h-5 text-slate-400 transition-transform ${
-                    isCategoryDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              {isCategoryDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                  {categoryList.map((el) => (
-                    <button
-                      key={el.id}
-                      type="button"
-                      onClick={() => handleCategorySelect(el.code)}
-                      className={`w-full px-4 py-3 flex items-center space-x-3 hover:bg-slate-700 transition-colors text-left ${
-                        selectedCategory === el.code ? "bg-blue-500/20 text-blue-400" : "text-white"
-                      }`}
-                    >
-                      {el.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Dropdown
+              label="카테고리"
+              items={categoryList}
+              value={selectedCategory}
+              onSelect={handleCategorySelect}
+              onOpenChange={setIsCategoryDropdownOpen}
+              getKey={(item) => item.id}
+              getValue={(item) => item.code}
+              placeholder="카테고리를 선택해주세요"
+              renderTrigger={(selected) => <span className="font-medium">{selected?.name}</span>}
+              renderItem={(item) => <span>{item.name}</span>}
+            />
             {selectedCategory && (
               <>
                 <label className="block text-sm font-medium text-slate-300 mb-2">

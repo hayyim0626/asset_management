@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState, useActionState } from "react";
 import Image from "next/image";
 import type { AssetType } from "@/entities/assets/types";
 import type { CategoryList } from "@/entities/assets/api/types";
@@ -8,7 +7,7 @@ import type { EditAssetType } from "../assetSection";
 import { Modal } from "@/shared/ui";
 import { formatUsd } from "@/shared/lib/functions";
 import { FormState } from "@/shared/types";
-import toast from "react-hot-toast";
+import { useEditAssetForm } from "./useEditAssetForm";
 
 type EditType = "ADD" | "REMOVE" | "DELETE";
 
@@ -65,38 +64,22 @@ export function EditAssetModal(props: PropType) {
     handleRemoveAsset,
     categoryList
   } = props;
-  const [editAction, setEditAction] = useState<EditType>("ADD");
-  const [addState, addFormAction, isAddPending] = useActionState(handleAddAsset, {
-    success: false,
-    error: null,
-    message: null,
-    date: Date.now()
+
+  const {
+    editAction,
+    addState,
+    removeState,
+    isAddPending,
+    isRemovePending,
+    setEditAction,
+    addFormAction,
+    removeFormAction
+  } = useEditAssetForm({
+    isOpen,
+    handleAddAsset,
+    handleRemoveAsset,
+    onClose
   });
-
-  const [removeState, removeFormAction, isRemovePending] = useActionState(handleRemoveAsset, {
-    success: false,
-    error: null,
-    message: null,
-    date: Date.now()
-  });
-
-  useEffect(() => {
-    if (!isOpen) setEditAction("ADD");
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (addState.success && addState.date) {
-      onClose();
-      toast.success(addState.message);
-    }
-  }, [addState.success, addState.date]);
-
-  useEffect(() => {
-    if (removeState.success && removeState.date) {
-      onClose();
-      toast.success(removeState.message);
-    }
-  }, [removeState.success && removeState.date]);
 
   const category = categoryList?.find((el) => el.code === selectedEditData?.category)?.name;
 
