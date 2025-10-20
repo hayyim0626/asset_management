@@ -7,7 +7,7 @@ import { Modal, Dropdown } from "@/shared/ui";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
 import type { AssetType } from "@/entities/assets/types";
 import { FormState } from "@/shared/types";
-import { useAddAssetForm } from "./useAddAssetForm";
+import { useAddAssetForm } from "@/features/assets/model/hooks/useAddAssetForm";
 
 interface PropType {
   isOpen: boolean;

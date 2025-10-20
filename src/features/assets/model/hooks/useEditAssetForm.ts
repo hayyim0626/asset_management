@@ -1,4 +1,5 @@
 import { useEffect, useState, useActionState } from "react";
+import { INITIAL_STATE } from "@/features/assets/lib/consts";
 import { FormState } from "@/shared/types";
 import toast from "react-hot-toast";
 
@@ -19,42 +20,36 @@ export function useEditAssetForm({
 }: UseEditAssetFormProps) {
   const [editAction, setEditAction] = useState<EditType>("ADD");
 
-  const [addState, addFormAction, isAddPending] = useActionState(handleAddAsset, {
-    success: false,
-    error: null,
-    message: null,
-    date: Date.now()
-  });
+  const [_addState, addFormAction, isAddPending] = useActionState(
+    async (prevState: FormState, formData: FormData) => {
+      const result = await handleAddAsset(prevState, formData);
+      if (result.success) {
+        onClose();
+        toast.success(result.message);
+      }
+      return result;
+    },
+    INITIAL_STATE
+  );
 
-  const [removeState, removeFormAction, isRemovePending] = useActionState(handleRemoveAsset, {
-    success: false,
-    error: null,
-    message: null,
-    date: Date.now()
-  });
+  const [_removeState, removeFormAction, isRemovePending] = useActionState(
+    async (prevState: FormState, formData: FormData) => {
+      const result = await handleRemoveAsset(prevState, formData);
+      if (result.success) {
+        onClose();
+        toast.success(result.message);
+      }
+      return result;
+    },
+    INITIAL_STATE
+  );
 
   useEffect(() => {
     if (!isOpen) setEditAction("ADD");
   }, [isOpen]);
 
-  useEffect(() => {
-    if (addState.success && addState.date) {
-      onClose();
-      toast.success(addState.message);
-    }
-  }, [addState.success, addState.date, onClose]);
-
-  useEffect(() => {
-    if (removeState.success && removeState.date) {
-      onClose();
-      toast.success(removeState.message);
-    }
-  }, [removeState.success, removeState.date, onClose]);
-
   return {
     editAction,
-    addState,
-    removeState,
     isAddPending,
     isRemovePending,
     setEditAction,

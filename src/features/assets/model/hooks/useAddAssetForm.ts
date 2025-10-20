@@ -1,4 +1,5 @@
 import { useEffect, useState, useActionState } from "react";
+import { INITIAL_STATE } from "@/features/assets/lib/consts";
 import type { AssetType } from "@/entities/assets/types";
 import { FormState } from "@/shared/types";
 import toast from "react-hot-toast";
@@ -21,19 +22,17 @@ export function useAddAssetForm({
   const [selectedAsset, setSelectedAsset] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
 
-  const [addState, addFormAction, isAddPending] = useActionState(handleAddAsset, {
-    success: false,
-    error: null,
-    message: null,
-    date: Date.now()
-  });
-
-  useEffect(() => {
-    if (addState.success && addState.date) {
-      onClose();
-      toast.success(addState.message);
-    }
-  }, [addState.success, addState.date, onClose]);
+  const [_, addFormAction, isAddPending] = useActionState(
+    async (prevState: FormState, formData: FormData) => {
+      const result = await handleAddAsset(prevState, formData);
+      if (result.success) {
+        onClose();
+        toast.success(result.message);
+      }
+      return result;
+    },
+    INITIAL_STATE
+  );
 
   useEffect(() => {
     if (!isOpen) {

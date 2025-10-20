@@ -7,7 +7,7 @@ import type { EditAssetType } from "../assetSection";
 import { Modal } from "@/shared/ui";
 import { formatUsd } from "@/shared/lib/functions";
 import { FormState } from "@/shared/types";
-import { useEditAssetForm } from "./useEditAssetForm";
+import { useEditAssetForm } from "@/features/assets/model/hooks";
 
 type EditType = "ADD" | "REMOVE" | "DELETE";
 
@@ -67,8 +67,6 @@ export function EditAssetModal(props: PropType) {
 
   const {
     editAction,
-    addState,
-    removeState,
     isAddPending,
     isRemovePending,
     setEditAction,
@@ -209,12 +207,6 @@ export function EditAssetModal(props: PropType) {
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
                     name="averagePrice"
                   />
-                </div>
-              )}
-
-              {(addState.error || removeState.error) && (
-                <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3">
-                  <p className="text-red-400 text-sm">{addState.error || removeState.error}</p>
                 </div>
               )}
             </>
