@@ -1,4 +1,5 @@
 import type { AssetType } from "@/entities/assets/types";
+import type { FormState } from "@/shared/types";
 
 export const ASSET_LIST: {
   name: string;
@@ -21,3 +22,9 @@ export const ASSET_LIST: {
     value: "cash"
   }
 ];
+
+export const INITIAL_STATE: FormState = {
+  success: false,
+  error: null,
+  message: null
+};
