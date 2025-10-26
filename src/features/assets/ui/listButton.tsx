@@ -1,9 +1,9 @@
 "use client";
 import type { AssetItem } from "@/entities/assets/api/types";
 import type { AssetType } from "@/entities/assets/types";
+import { AssetImage } from "@/entities/assets/ui";
 import { formatKrw } from "@/shared/lib/functions";
 import { SvgIcon } from "@/shared/ui";
-import Image from "next/image";
 
 interface PropType {
   asset: AssetItem;
@@ -22,19 +22,7 @@ export function ListButton(props: PropType) {
     >
       <div className="flex items-center space-x-4">
         <div className="w-10 h-10 rounded-full bg-slate-800 flex justify-center items-center">
-          <span className="text-3xl">
-            {type === "cash" ? (
-              asset.image //emoji
-            ) : (
-              <Image
-                src={asset.image}
-                width={26}
-                height={26}
-                alt="coin_img"
-                className="rounded-full"
-              />
-            )}
-          </span>
+          <AssetImage assetType={type} src={asset.image} imageWidth={26} emojiSize="text-3xl" />
         </div>
         <div className="text-start">
           <p className="text-white font-medium">{asset.name}</p>
