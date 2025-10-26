@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import { CategoryList, CoinlistType, CurrencyType } from "@/entities/assets/api/types";
 import { Modal, Dropdown } from "@/shared/ui";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
 import type { AssetType } from "@/entities/assets/types";
 import { useAddAssetForm } from "@/features/assets/model/hooks/useAddAssetForm";
 import { handleAddAsset } from "@/features/assets/model/functions";
+import { AssetImage } from "@/entities/assets/ui";
 
 interface PropType {
   isOpen: boolean;
@@ -19,13 +19,6 @@ interface PropType {
   dropdownData: CurrencyType[] | CoinlistType[];
   categoryList: CategoryList[];
 }
-
-const RenderImage = ({ assetType, image }: { assetType: "cash" | "crypto"; image: string }) =>
-  assetType === "cash" ? (
-    <span className="text-lg">{image}</span>
-  ) : (
-    <Image src={image} width={20} height={20} alt="asset_img" className="rounded-full" />
-  );
 
 export function AddAssetModal(props: PropType) {
   const {
@@ -139,10 +132,7 @@ export function AddAssetModal(props: PropType) {
                             <>
                               <div className="flex items-center space-x-3">
                                 {assetType && (
-                                  <RenderImage
-                                    assetType={assetType}
-                                    image={selected?.image || ""}
-                                  />
+                                  <AssetImage assetType={assetType} image={selected?.image || ""} />
                                 )}
                                 <div className="flex items-center space-x-2">
                                   <span className="font-medium">{selected?.symbol}</span>
@@ -164,7 +154,7 @@ export function AddAssetModal(props: PropType) {
                         value={el.symbol}
                       >
                         <>
-                          {assetType && <RenderImage assetType={assetType} image={el.image} />}
+                          {assetType && <AssetImage assetType={assetType} image={el.image} />}
                           <div className="flex items-center space-x-2 flex-1">
                             <span className="font-medium">{el.symbol}</span>
                             <span>-</span>
