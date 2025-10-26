@@ -6,8 +6,8 @@ import { CategoryList, CoinlistType, CurrencyType } from "@/entities/assets/api/
 import { Modal, Dropdown } from "@/shared/ui";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
 import type { AssetType } from "@/entities/assets/types";
-import { FormState } from "@/shared/types";
 import { useAddAssetForm } from "@/features/assets/model/hooks/useAddAssetForm";
+import { handleAddAsset } from "@/features/assets/model/functions";
 
 interface PropType {
   isOpen: boolean;
@@ -18,7 +18,6 @@ interface PropType {
   setAssetType: (type: AssetType | null) => void;
   dropdownData: CurrencyType[] | CoinlistType[];
   categoryList: CategoryList[];
-  handleAddAsset: (prevState: FormState, formData: FormData) => Promise<FormState>;
 }
 
 const RenderImage = ({ assetType, image }: { assetType: "cash" | "crypto"; image: string }) =>
@@ -37,8 +36,7 @@ export function AddAssetModal(props: PropType) {
     assetType,
     setAssetType,
     dropdownData,
-    categoryList,
-    handleAddAsset
+    categoryList
   } = props;
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
@@ -222,7 +220,7 @@ export function AddAssetModal(props: PropType) {
               <Dropdown.Trigger placeholder="카테고리를 선택해주세요">
                 {selectedCategory && (
                   <span className="font-medium">
-                    {categoryList.find((item) => item.code === selectedCategory)?.name}
+                    {categoryList?.find((item) => item.code === selectedCategory)?.name}
                   </span>
                 )}
               </Dropdown.Trigger>

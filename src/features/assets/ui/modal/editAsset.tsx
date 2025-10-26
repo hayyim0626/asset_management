@@ -6,7 +6,7 @@ import type { CategoryList } from "@/entities/assets/api/types";
 import type { EditAssetType } from "../assetSection";
 import { Modal } from "@/shared/ui";
 import { formatUsd } from "@/shared/lib/functions";
-import { FormState } from "@/shared/types";
+import { handleAddAsset, handleRemoveAsset } from "@/features/assets/model/functions";
 import { useEditAssetForm } from "@/features/assets/model/hooks";
 
 type EditType = "ADD" | "REMOVE" | "DELETE";
@@ -14,8 +14,6 @@ type EditType = "ADD" | "REMOVE" | "DELETE";
 interface PropType {
   isOpen: boolean;
   onClose: () => void;
-  handleAddAsset: (prevState: FormState, formData: FormData) => Promise<FormState>;
-  handleRemoveAsset: (prevState: FormState, formData: FormData) => Promise<FormState>;
   assetType: AssetType | null;
   selectedEditData: EditAssetType | null;
   categoryList: CategoryList[];
@@ -55,15 +53,7 @@ function EditButton({
 }
 
 export function EditAssetModal(props: PropType) {
-  const {
-    isOpen,
-    onClose,
-    assetType,
-    selectedEditData,
-    handleAddAsset,
-    handleRemoveAsset,
-    categoryList
-  } = props;
+  const { isOpen, onClose, assetType, selectedEditData, categoryList } = props;
 
   const {
     editAction,

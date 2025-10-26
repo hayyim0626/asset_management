@@ -1,5 +1,4 @@
 import { AssetClient } from "./client";
-import { handleAddAsset, handleRemoveAsset } from "@/features/assets/model/functions";
 import { getAsset, getCurrency, getCoins, getAssetCategories } from "@/entities/assets/api";
 import { cookieUtils } from "@/shared/api/supabase/cookie";
 
@@ -15,8 +14,6 @@ export default async function AssetsPage() {
     <>
       <div className="min-h-screen bg-slate-950">
         <AssetClient
-          handleAddAsset={handleAddAsset}
-          handleRemoveAsset={handleRemoveAsset}
           data={asset.data}
           currencyList={currency.data}
           coinList={coins.data}

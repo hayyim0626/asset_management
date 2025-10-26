@@ -11,27 +11,17 @@ import type {
 import type { EditAssetType } from "@/features/assets/ui/assetSection";
 import { AddAssetModal, EditAssetModal } from "@/features/assets/ui";
 import { formatKrw } from "@/shared/lib/functions";
-import { FormState } from "@/shared/types";
 import { AssetType } from "@/entities/assets/types";
 import { SvgIcon } from "@/shared/ui";
 
 interface PropType {
-  handleAddAsset: (prevState: FormState, formData: FormData) => Promise<FormState>;
-  handleRemoveAsset: (prevState: FormState, formData: FormData) => Promise<FormState>;
   data: UserPortfolio;
   currencyList: CurrencyType[];
   coinList: CoinlistType[];
   category: Category;
 }
 
-export function AssetClient({
-  handleAddAsset,
-  handleRemoveAsset,
-  data,
-  currencyList,
-  coinList,
-  category
-}: PropType) {
+export function AssetClient({ data, currencyList, coinList, category }: PropType) {
   const [isAddModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [assetType, setAssetType] = useState<AssetType | null>(null);
@@ -152,7 +142,6 @@ export function AssetClient({
         assetType={assetType}
         setAssetType={setAssetType}
         dropdownData={dropdownData}
-        handleAddAsset={handleAddAsset}
         categoryList={category[assetType!]}
       />
       <EditAssetModal
@@ -160,8 +149,6 @@ export function AssetClient({
         onClose={closeEditModal}
         assetType={assetType}
         selectedEditData={selectedEditData}
-        handleAddAsset={handleAddAsset}
-        handleRemoveAsset={handleRemoveAsset}
         categoryList={category[assetType!]}
       />
     </div>

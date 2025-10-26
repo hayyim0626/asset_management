@@ -1,3 +1,5 @@
+"use server";
+
 import { revalidatePath } from "next/cache";
 import { FormState } from "@/shared/types";
 import { addAsset } from "@/features/assets/api";
@@ -7,7 +9,6 @@ export const handleAddAsset = async (
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> => {
-  "use server";
   const { getAccessToken } = await cookieUtils();
   const token = getAccessToken() as string;
 
