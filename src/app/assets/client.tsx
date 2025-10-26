@@ -9,6 +9,7 @@ import type {
   Category
 } from "@/entities/assets/api/types";
 import type { EditAssetType } from "@/features/assets/ui/assetSection";
+import { descAssetItemByTotalKrw } from "@/features/assets/lib/functions";
 import { AddAssetModal, EditAssetModal } from "@/features/assets/ui";
 import { formatKrw } from "@/shared/lib/functions";
 import { AssetType } from "@/entities/assets/types";
@@ -110,7 +111,7 @@ export function AssetClient({ data, currencyList, coinList, category }: PropType
           openEditModal={openEditModal}
           title="현금 자산"
           totalValue={data.cash.totalValue}
-          assets={data.cash?.assets || []}
+          assets={descAssetItemByTotalKrw(data.cash?.assets) || []}
           type="cash"
           category={category["cash"]}
         />
@@ -119,7 +120,7 @@ export function AssetClient({ data, currencyList, coinList, category }: PropType
           openEditModal={openEditModal}
           title="코인 자산"
           totalValue={data.crypto.totalValue}
-          assets={data.crypto?.assets || []}
+          assets={descAssetItemByTotalKrw(data.crypto?.assets) || []}
           type="crypto"
           category={category["crypto"]}
         />
@@ -128,7 +129,7 @@ export function AssetClient({ data, currencyList, coinList, category }: PropType
           openEditModal={openEditModal}
           title="주식 자산"
           totalValue={data.stocks.totalValue}
-          assets={data.stocks?.assets || []}
+          assets={descAssetItemByTotalKrw(data.stocks?.assets) || []}
           type="stocks"
           category={category["stocks"]}
         />

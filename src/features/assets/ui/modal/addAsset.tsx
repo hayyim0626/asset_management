@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { CategoryList, CoinlistType, CurrencyType } from "@/entities/assets/api/types";
 import { Modal, Dropdown } from "@/shared/ui";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
 import type { AssetType } from "@/entities/assets/types";
 import { useAddAssetForm } from "@/features/assets/model/hooks/useAddAssetForm";
 import { handleAddAsset } from "@/features/assets/model/functions";
+import { categoryNamePlaceholder } from "@/features/assets/lib/functions";
 import { AssetImage } from "@/entities/assets/ui";
+import toast from "react-hot-toast";
 
 interface PropType {
   isOpen: boolean;
@@ -48,38 +50,13 @@ export function AddAssetModal(props: PropType) {
     setIsFirstAdd
   });
 
-  const categoryNamePlaceholder = useMemo(() => {
-    switch (assetType) {
-      case "cash":
-        switch (selectedCategory) {
-          case "house_deposit":
-            return "부동산/내 월세 집";
-          case "stock_account":
-            return "삼성증권";
-          case "crypto_account":
-            return "업비트";
-          default:
-            return "국민은행";
-        }
-      case "crypto":
-        switch (selectedCategory) {
-          case "exchange":
-            return "업비트";
-          case "personal_wallet":
-            return "메타마스크";
-          case "hardware_wallet":
-            return "JADE";
-          case "crypto_account":
-            return "업비트";
-          case "defi":
-            return "유니스왑";
-          default:
-            return "기타";
-        }
-      case "stocks":
-        return "기타";
+  const handleClickAssetType = (type: AssetType) => {
+    if (type === "stocks") {
+      toast("⚠️ 현재 주식 자산관리 서비스는 준비중이에요!");
+      return;
     }
-  }, [assetType, selectedCategory]);
+    setAssetType(type);
+  };
 
   return (
     <Modal title="자산 추가" isOpen={isOpen} onClose={onClose}>
@@ -101,7 +78,7 @@ export function AddAssetModal(props: PropType) {
                 {ASSET_LIST.map((el) => (
                   <button
                     key={el.value}
-                    onClick={() => setAssetType(el.value)}
+                    onClick={() => handleClickAssetType(el.value)}
                     className={`p-3 rounded-lg border cursor-pointer transition-all ${
                       assetType === el.value
                         ? "border-blue-500 bg-blue-500/20 text-blue-400"
@@ -118,64 +95,68 @@ export function AddAssetModal(props: PropType) {
             </div>
           )}
           <div className="space-y-4">
-            <div>
-              {assetType !== "stocks" ? (
-                <Dropdown>
-                  <Dropdown.Label>{assetType === "crypto" ? "코인명/심볼" : "통화"}</Dropdown.Label>
-                  <Dropdown.Trigger
-                    placeholder={`${assetType === "cash" ? "통화를" : "코인을"} 선택해주세요`}
-                  >
-                    {selectedAsset
-                      ? () => {
-                          const selected = dropdownData.find((el) => el.symbol === selectedAsset);
-                          return (
-                            <>
-                              <div className="flex items-center space-x-3">
-                                {assetType && (
-                                  <AssetImage assetType={assetType} image={selected?.image || ""} />
-                                )}
-                                <div className="flex items-center space-x-2">
-                                  <span className="font-medium">{selected?.symbol}</span>
-                                  <span className="text-slate-400">-</span>
-                                  <span className="text-sm text-slate-400">{selected?.name}</span>
+            {assetType && (
+              <div>
+                {assetType !== "stocks" ? (
+                  <Dropdown>
+                    <Dropdown.Label>
+                      {assetType === "crypto" ? "코인명/심볼" : "통화"}
+                    </Dropdown.Label>
+                    <Dropdown.Trigger
+                      placeholder={`${assetType === "cash" ? "통화를" : "코인을"} 선택해주세요`}
+                    >
+                      {selectedAsset
+                        ? () => {
+                            const selected = dropdownData.find((el) => el.symbol === selectedAsset);
+                            return (
+                              <>
+                                <div className="flex items-center space-x-3">
+                                  {assetType && (
+                                    <AssetImage assetType={assetType} src={selected?.image || ""} />
+                                  )}
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-medium">{selected?.symbol}</span>
+                                    <span className="text-slate-400">-</span>
+                                    <span className="text-sm text-slate-400">{selected?.name}</span>
+                                  </div>
                                 </div>
-                              </div>
-                            </>
-                          );
-                        }
-                      : null}
-                  </Dropdown.Trigger>
-                  <Dropdown.Container>
-                    {dropdownData.map((el) => (
-                      <Dropdown.ItemList
-                        onSelect={handleCurrencySelect}
-                        selectedValue={selectedAsset}
-                        key={el.name}
-                        value={el.symbol}
-                      >
-                        <>
-                          {assetType && <AssetImage assetType={assetType} image={el.image} />}
-                          <div className="flex items-center space-x-2 flex-1">
-                            <span className="font-medium">{el.symbol}</span>
-                            <span>-</span>
-                            <span className="text-sm">{el.name}</span>
-                          </div>
-                        </>
-                      </Dropdown.ItemList>
-                    ))}
-                  </Dropdown.Container>
-                </Dropdown>
-              ) : (
-                // 주식일 때 기존 입력 필드
-                <input
-                  type="text"
-                  name="symbol"
-                  required
-                  placeholder={"AAPL, TSLA 등"}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
-                />
-              )}
-            </div>
+                              </>
+                            );
+                          }
+                        : null}
+                    </Dropdown.Trigger>
+                    <Dropdown.Container>
+                      {dropdownData.map((el) => (
+                        <Dropdown.ItemList
+                          onSelect={handleCurrencySelect}
+                          selectedValue={selectedAsset}
+                          key={el.name}
+                          value={el.symbol}
+                        >
+                          <>
+                            {assetType && <AssetImage assetType={assetType} src={el.image} />}
+                            <div className="flex items-center space-x-2 flex-1">
+                              <span className="font-medium">{el.symbol}</span>
+                              <span>-</span>
+                              <span className="text-sm">{el.name}</span>
+                            </div>
+                          </>
+                        </Dropdown.ItemList>
+                      ))}
+                    </Dropdown.Container>
+                  </Dropdown>
+                ) : (
+                  // 주식일 때 기존 입력 필드
+                  <input
+                    type="text"
+                    name="symbol"
+                    required
+                    placeholder={"AAPL, TSLA 등"}
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
+                  />
+                )}
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
                 {assetType === "crypto" && "보유 수량"}
@@ -191,7 +172,7 @@ export function AddAssetModal(props: PropType) {
                 required
               />
             </div>
-            {assetType !== "cash" && (
+            {/* {assetType !== "cash" && (
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   평균 단가 (원)
@@ -204,7 +185,7 @@ export function AddAssetModal(props: PropType) {
                   name="averagePrice"
                 />
               </div>
-            )}
+            )} */}
             <Dropdown onOpenChange={setIsCategoryDropdownOpen}>
               <Dropdown.Label>카테고리</Dropdown.Label>
               <Dropdown.Trigger placeholder="카테고리를 선택해주세요">
@@ -234,7 +215,7 @@ export function AddAssetModal(props: PropType) {
                 </label>
                 <input
                   type="text"
-                  placeholder={`예) ${categoryNamePlaceholder}`}
+                  placeholder={`예) ${categoryNamePlaceholder({ assetType, selectedCategory })}`}
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
                   name="categoryName"
                   required
