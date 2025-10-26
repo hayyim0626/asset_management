@@ -6,6 +6,7 @@ import type { AssetType } from "@/entities/assets/types";
 import { formatKrw } from "@/shared/lib/functions";
 import { ListButton } from "./listButton";
 import { SvgIcon } from "@/shared/ui";
+import toast from "react-hot-toast";
 
 export interface EditAssetType extends UserCategory {
   symbol: string;
@@ -46,6 +47,14 @@ export function AssetSection({
     });
   };
 
+  const handleClickAddBtn = (type: AssetType) => {
+    if (type === "stocks") {
+      toast("⚠️ 현재 주식 자산관리 서비스는 준비중이에요!");
+      return;
+    }
+    openAddModal(type);
+  };
+
   return (
     <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
       <div className="flex items-center justify-between mb-6">
@@ -54,10 +63,10 @@ export function AssetSection({
           <p className="text-2xl font-bold text-blue-400 mt-1">{formatKrw(totalValue.krw)}</p>
         </div>
         <button
-          onClick={() => openAddModal(type)}
-          className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg transition-colors"
+          onClick={() => handleClickAddBtn(type)}
+          className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg transition-colors cursor-pointer"
         >
-          <SvgIcon name="plus" className="w-5 h-5 text-white cursor-pointer" />
+          <SvgIcon name="plus" className="w-5 h-5 text-white" />
         </button>
       </div>
 
@@ -133,7 +142,7 @@ export function AssetSection({
         <div className="text-center py-8 text-slate-400">
           <p>등록된 {title.toLowerCase()}이 없습니다.</p>
           <button
-            onClick={() => openAddModal(type)}
+            onClick={() => handleClickAddBtn(type)}
             className="mt-4 text-blue-400 hover:text-blue-300 text-sm"
           >
             + 첫 번째 자산 추가하기
