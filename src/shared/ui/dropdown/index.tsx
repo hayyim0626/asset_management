@@ -19,8 +19,14 @@ function useDropdownContext<T>() {
   return context;
 }
 
-function DropdownRoot({ children }: { children: ReactNode }) {
-  const { isOpen, handleToggle, handleClose } = useDropdown();
+function DropdownRoot({
+  children,
+  onOpenChange
+}: {
+  children: ReactNode;
+  onOpenChange?: (isOpen: boolean) => void;
+}) {
+  const { isOpen, handleToggle, handleClose } = useDropdown({ onOpenChange });
 
   return (
     <DropdownContext.Provider

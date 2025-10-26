@@ -217,7 +217,7 @@ export function AddAssetModal(props: PropType) {
                 />
               </div>
             )}
-            <Dropdown>
+            <Dropdown onOpenChange={setIsCategoryDropdownOpen}>
               <Dropdown.Label>카테고리</Dropdown.Label>
               <Dropdown.Trigger placeholder="카테고리를 선택해주세요">
                 {selectedCategory && (
