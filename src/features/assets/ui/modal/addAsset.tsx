@@ -128,45 +128,55 @@ export function AddAssetModal(props: PropType) {
           )}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                {assetType === "crypto" && "코인명/심볼"}
-                {assetType === "stocks" && "종목명/심볼"}
-                {assetType === "cash" && "통화"}
-              </label>
-
               {assetType !== "stocks" ? (
-                <Dropdown<CoinlistType | CurrencyType>
-                  items={dropdownData}
-                  value={selectedAsset}
-                  onSelect={handleCurrencySelect}
-                  getKey={(item) => item.symbol}
-                  getValue={(item) => item.symbol}
-                  placeholder={`${assetType === "cash" ? "통화를" : "코인을"} 선택해주세요`}
-                  renderTrigger={(selected: CoinlistType | CurrencyType) => (
-                    <>
-                      <div className="flex items-center space-x-3">
-                        {assetType && (
-                          <RenderImage assetType={assetType} image={selected.image || ""} />
-                        )}
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium">{selected.symbol}</span>
-                          <span className="text-slate-400">-</span>
-                          <span className="text-sm text-slate-400">{selected.name}</span>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  renderItem={(item) => (
-                    <>
-                      {assetType && <RenderImage assetType={assetType} image={item.image} />}
-                      <div className="flex items-center space-x-2 flex-1">
-                        <span className="font-medium">{item.symbol}</span>
-                        <span>-</span>
-                        <span className="text-sm">{item.name}</span>
-                      </div>
-                    </>
-                  )}
-                />
+                <Dropdown>
+                  <Dropdown.Label>{assetType === "crypto" ? "코인명/심볼" : "통화"}</Dropdown.Label>
+                  <Dropdown.Trigger
+                    placeholder={`${assetType === "cash" ? "통화를" : "코인을"} 선택해주세요`}
+                  >
+                    {selectedAsset
+                      ? () => {
+                          const selected = dropdownData.find((el) => el.symbol === selectedAsset);
+                          return (
+                            <>
+                              <div className="flex items-center space-x-3">
+                                {assetType && (
+                                  <RenderImage
+                                    assetType={assetType}
+                                    image={selected?.image || ""}
+                                  />
+                                )}
+                                <div className="flex items-center space-x-2">
+                                  <span className="font-medium">{selected?.symbol}</span>
+                                  <span className="text-slate-400">-</span>
+                                  <span className="text-sm text-slate-400">{selected?.name}</span>
+                                </div>
+                              </div>
+                            </>
+                          );
+                        }
+                      : null}
+                  </Dropdown.Trigger>
+                  <Dropdown.Container>
+                    {dropdownData.map((el) => (
+                      <Dropdown.ItemList
+                        onSelect={handleCurrencySelect}
+                        selectedValue={selectedAsset}
+                        key={el.name}
+                        value={el.symbol}
+                      >
+                        <>
+                          {assetType && <RenderImage assetType={assetType} image={el.image} />}
+                          <div className="flex items-center space-x-2 flex-1">
+                            <span className="font-medium">{el.symbol}</span>
+                            <span>-</span>
+                            <span className="text-sm">{el.name}</span>
+                          </div>
+                        </>
+                      </Dropdown.ItemList>
+                    ))}
+                  </Dropdown.Container>
+                </Dropdown>
               ) : (
                 // 주식일 때 기존 입력 필드
                 <input
@@ -207,18 +217,28 @@ export function AddAssetModal(props: PropType) {
                 />
               </div>
             )}
-            <Dropdown
-              label="카테고리"
-              items={categoryList}
-              value={selectedCategory}
-              onSelect={handleCategorySelect}
-              onOpenChange={setIsCategoryDropdownOpen}
-              getKey={(item) => item.id}
-              getValue={(item) => item.code}
-              placeholder="카테고리를 선택해주세요"
-              renderTrigger={(selected) => <span className="font-medium">{selected?.name}</span>}
-              renderItem={(item) => <span>{item.name}</span>}
-            />
+            <Dropdown>
+              <Dropdown.Label>카테고리</Dropdown.Label>
+              <Dropdown.Trigger placeholder="카테고리를 선택해주세요">
+                {selectedCategory && (
+                  <span className="font-medium">
+                    {categoryList.find((item) => item.code === selectedCategory)?.name}
+                  </span>
+                )}
+              </Dropdown.Trigger>
+              <Dropdown.Container>
+                {categoryList?.map((el) => (
+                  <Dropdown.ItemList
+                    key={el.id}
+                    selectedValue={selectedCategory}
+                    value={el.code}
+                    onSelect={handleCategorySelect}
+                  >
+                    {el.name}
+                  </Dropdown.ItemList>
+                ))}
+              </Dropdown.Container>
+            </Dropdown>
             {selectedCategory && (
               <>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
