@@ -4,7 +4,7 @@ import { useState } from "react";
 import { GoogleLoginButton } from "@/features/auth/login/ui/googleLogin";
 import { signOut } from "@/shared/api/auth/functions";
 import { useMount } from "@/shared/hooks";
-import { wait } from "@/shared/utils";
+import { wait } from "@/shared/lib/functions";
 
 interface PropType {
   user: string;
@@ -28,8 +28,7 @@ export default function LoginStatus(props: PropType) {
       ) : user ? (
         <div className="flex items-center gap-4 text-sm text-slate-300 font-medium">
           <p>
-            안녕하세요, <span className="text-white font-semibold">{user}</span>
-            님
+            안녕하세요, <span className="text-white font-semibold">{user}</span>님
           </p>
           <button
             onClick={signOut}

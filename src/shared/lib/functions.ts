@@ -11,3 +11,7 @@ export const formatUsd = (amount: number, maxDigits: number = 8) => {
     maximumFractionDigits: maxDigits
   }).format(amount);
 };
+
+export const wait = (timeout: number) => {
+  return new Promise((resolve) => setTimeout(resolve, timeout));
+};
