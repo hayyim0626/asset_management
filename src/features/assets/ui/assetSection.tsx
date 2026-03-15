@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import type { AssetItem, CategoryList, UserCategory } from "@/entities/assets/api/types";
 import type { AssetType } from "@/entities/assets/types";
 import { formatKrw } from "@/shared/lib/functions";
 import { ListButton } from "./listButton";
 import { SvgIcon } from "@/shared/ui";
+import { calcProfitLossPercent, calcProfitLossKrw, calcTotalProfitLoss } from "@/features/assets/lib/profitLoss";
+import { ProfitLossDisplay } from "./components/ProfitLossDisplay";
 import toast from "react-hot-toast";
 
 export interface EditAssetType extends UserCategory {
@@ -35,6 +37,17 @@ export function AssetSection({
 }: PropType) {
   const [expandedAssets, setExpandedAssets] = useState<Set<string>>(new Set());
 
+  const sectionProfitLoss = useMemo(() => {
+    if (type !== "crypto") return null;
+    const result = calcTotalProfitLoss(assets);
+    if (!result) return null;
+    const percent =
+      result.totalInvestmentKrw > 0
+        ? ((result.totalValueKrw - result.totalInvestmentKrw) / result.totalInvestmentKrw) * 100
+        : 0;
+    return { percent, amountKrw: result.totalKrw };
+  }, [assets, type]);
+
   const toggleAsset = (id: string) => {
     setExpandedAssets((prev) => {
       const newSet = new Set(prev);
@@ -61,6 +74,14 @@ export function AssetSection({
         <div>
           <h3 className="text-lg font-semibold text-white">{title}</h3>
           <p className="text-2xl font-bold text-blue-400 mt-1">{formatKrw(totalValue.krw)}</p>
+          {sectionProfitLoss && (
+            <div className="mt-1">
+              <ProfitLossDisplay
+                percent={sectionProfitLoss.percent}
+                amountKrw={sectionProfitLoss.amountKrw}
+              />
+            </div>
+          )}
         </div>
         <button
           onClick={() => handleClickAddBtn(type)}
@@ -90,6 +111,14 @@ export function AssetSection({
                   <div className="px-4 pb-3 space-y-2 border-t border-slate-700/50 pt-3">
                     {asset.categories.map((el) => {
                       const name = category.find((cat) => cat.code === el.category)?.name;
+                      const catPercent =
+                        type === "crypto"
+                          ? calcProfitLossPercent(asset.currentPrice.krw, el.averagePrice)
+                          : null;
+                      const catAmountKrw =
+                        type === "crypto"
+                          ? calcProfitLossKrw(asset.currentPrice.krw, el.averagePrice, el.amount)
+                          : null;
                       return (
                         <div
                           key={el.id}
@@ -109,6 +138,12 @@ export function AssetSection({
                                   ? `${el.amount.toLocaleString()} ${asset.symbol}`
                                   : `${el.amount} ${asset.symbol}`}
                               </p>
+                              {catPercent != null && catAmountKrw != null && (
+                                <ProfitLossDisplay
+                                  percent={catPercent}
+                                  amountKrw={catAmountKrw}
+                                />
+                              )}
                             </div>
                             <button
                               className="w-5 h-5 cursor-pointer"

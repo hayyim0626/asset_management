@@ -14,6 +14,8 @@ import { AddAssetModal, EditAssetModal } from "@/features/assets/ui";
 import { formatKrw } from "@/shared/lib/functions";
 import { AssetType } from "@/entities/assets/types";
 import { SvgIcon } from "@/shared/ui";
+import { calcTotalProfitLoss } from "@/features/assets/lib/profitLoss";
+import { ProfitLossDisplay } from "@/features/assets/ui/components/ProfitLossDisplay";
 
 interface PropType {
   data: UserPortfolio;
@@ -28,6 +30,16 @@ export function AssetClient({ data, currencyList, coinList, category }: PropType
   const [assetType, setAssetType] = useState<AssetType | null>(null);
   const [selectedEditData, setSelectedEditData] = useState<EditAssetType | null>(null);
   const [isFirstAdd, setIsFirstAdd] = useState(false);
+
+  const cryptoProfitLoss = useMemo(() => {
+    const result = calcTotalProfitLoss(data.crypto.assets);
+    if (!result) return null;
+    const percent =
+      result.totalInvestmentKrw > 0
+        ? ((result.totalValueKrw - result.totalInvestmentKrw) / result.totalInvestmentKrw) * 100
+        : 0;
+    return { percent, amountKrw: result.totalKrw };
+  }, [data.crypto.assets]);
 
   const dropdownData = useMemo(() => {
     switch (assetType) {
@@ -91,6 +103,12 @@ export function AssetClient({ data, currencyList, coinList, category }: PropType
               <div className="text-center">
                 <p className="text-slate-400">코인</p>
                 <p className="text-white font-semibold">{formatKrw(data.crypto.totalValue.krw)}</p>
+                {cryptoProfitLoss && (
+                  <ProfitLossDisplay
+                    percent={cryptoProfitLoss.percent}
+                    amountKrw={cryptoProfitLoss.amountKrw}
+                  />
+                )}
               </div>
               <div className="text-center">
                 <p className="text-slate-400">주식</p>

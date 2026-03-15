@@ -9,6 +9,7 @@ import { useAddAssetForm } from "@/features/assets/model/hooks/useAddAssetForm";
 import { handleAddAsset } from "@/features/assets/model/functions";
 import { categoryNamePlaceholder } from "@/features/assets/lib/functions";
 import { AssetImage } from "@/entities/assets/ui";
+import { AveragePriceInput } from "../components/AveragePriceInput";
 import toast from "react-hot-toast";
 
 interface PropType {
@@ -34,6 +35,7 @@ export function AddAssetModal(props: PropType) {
     categoryList
   } = props;
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [amountValue, setAmountValue] = useState(0);
 
   const {
     selectedAsset,
@@ -170,22 +172,10 @@ export function AddAssetModal(props: PropType) {
                 className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
                 name="amount"
                 required
+                onChange={(e) => setAmountValue(parseFloat(e.target.value) || 0)}
               />
             </div>
-            {/* {assetType !== "cash" && (
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  평균 단가 (원)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="구매 평균 단가"
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
-                  name="averagePrice"
-                />
-              </div>
-            )} */}
+            {assetType === "crypto" && <AveragePriceInput amount={amountValue} />}
             <Dropdown onOpenChange={setIsCategoryDropdownOpen}>
               <Dropdown.Label>카테고리</Dropdown.Label>
               <Dropdown.Trigger placeholder="카테고리를 선택해주세요">

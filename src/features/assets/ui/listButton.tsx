@@ -1,9 +1,12 @@
 "use client";
+import { useMemo } from "react";
 import type { AssetItem } from "@/entities/assets/api/types";
 import type { AssetType } from "@/entities/assets/types";
 import { AssetImage } from "@/entities/assets/ui";
 import { formatKrw } from "@/shared/lib/functions";
 import { SvgIcon } from "@/shared/ui";
+import { calcProfitLossPercent, calcProfitLossKrw } from "@/features/assets/lib/profitLoss";
+import { ProfitLossDisplay } from "./components/ProfitLossDisplay";
 
 interface PropType {
   asset: AssetItem;
@@ -15,6 +18,31 @@ interface PropType {
 export function ListButton(props: PropType) {
   const { asset, toggleAsset, type, expandedAssets } = props;
   const isExpanded = expandedAssets.has(asset.id);
+
+  const profitLoss = useMemo(() => {
+    if (type !== "crypto") return null;
+
+    let totalInvestment = 0;
+    let totalAmount = 0;
+    let hasAvgPrice = false;
+
+    for (const cat of asset.categories) {
+      if (cat.averagePrice != null && cat.averagePrice > 0) {
+        hasAvgPrice = true;
+        totalInvestment += cat.averagePrice * cat.amount;
+        totalAmount += cat.amount;
+      }
+    }
+
+    if (!hasAvgPrice || totalAmount === 0) return null;
+
+    const weightedAvgPrice = totalInvestment / totalAmount;
+    const percent = calcProfitLossPercent(asset.currentPrice.krw, weightedAvgPrice);
+    const amountKrw = calcProfitLossKrw(asset.currentPrice.krw, weightedAvgPrice, totalAmount);
+
+    return { percent, amountKrw };
+  }, [asset, type]);
+
   return (
     <button
       onClick={() => toggleAsset(asset.id)}
@@ -39,6 +67,9 @@ export function ListButton(props: PropType) {
               ? `${asset.amount.toLocaleString()} ${asset.symbol}`
               : `${asset.amount} ${asset.symbol}`}
           </p>
+          {profitLoss && (
+            <ProfitLossDisplay percent={profitLoss.percent} amountKrw={profitLoss.amountKrw} />
+          )}
         </div>
         <SvgIcon
           name="chevronDown"

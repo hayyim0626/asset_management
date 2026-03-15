@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import type { AssetType } from "@/entities/assets/types";
 import type { CategoryList } from "@/entities/assets/api/types";
@@ -7,9 +8,11 @@ import type { EditAssetType } from "../assetSection";
 import { Modal } from "@/shared/ui";
 import { formatUsd } from "@/shared/lib/functions";
 import { handleAddAsset, handleRemoveAsset } from "@/features/assets/model/functions";
+import { handleEditAvgPrice } from "@/features/assets/model/functions/handleEditAvgPrice";
 import { useEditAssetForm } from "@/features/assets/model/hooks";
+import { AveragePriceInput } from "../components/AveragePriceInput";
 
-type EditType = "ADD" | "REMOVE" | "DELETE";
+type EditType = "ADD" | "REMOVE" | "DELETE" | "EDIT";
 
 interface PropType {
   isOpen: boolean;
@@ -54,26 +57,38 @@ function EditButton({
 
 export function EditAssetModal(props: PropType) {
   const { isOpen, onClose, assetType, selectedEditData, categoryList } = props;
+  const [addAmount, setAddAmount] = useState(0);
 
   const {
     editAction,
     isAddPending,
     isRemovePending,
+    isEditPending,
     setEditAction,
     addFormAction,
-    removeFormAction
+    removeFormAction,
+    editFormAction
   } = useEditAssetForm({
     isOpen,
     handleAddAsset,
     handleRemoveAsset,
+    handleEditAvgPrice,
     onClose
   });
 
   const category = categoryList?.find((el) => el.code === selectedEditData?.category)?.name;
 
+  const getFormAction = () => {
+    if (editAction === "EDIT") return editFormAction;
+    if (editAction === "ADD") return addFormAction;
+    return removeFormAction;
+  };
+
+  const isPending = isAddPending || isRemovePending || isEditPending;
+
   return (
     <Modal title="자산 편집" isOpen={isOpen} onClose={onClose}>
-      <form action={editAction === "ADD" ? addFormAction : removeFormAction}>
+      <form action={getFormAction()}>
         {assetType && <input type="hidden" name="assetType" value={assetType} />}
         {selectedEditData && <input type="hidden" name="symbol" value={selectedEditData.symbol} />}
         {selectedEditData && (
@@ -81,6 +96,9 @@ export function EditAssetModal(props: PropType) {
         )}
         {selectedEditData && (
           <input type="hidden" name="categoryName" value={selectedEditData.category_name} />
+        )}
+        {selectedEditData && (
+          <input type="hidden" name="categoryId" value={selectedEditData.id} />
         )}
         <div className="p-6 space-y-6">
           {selectedEditData && (
@@ -113,7 +131,9 @@ export function EditAssetModal(props: PropType) {
                 <label className="block text-sm font-medium text-slate-300 mb-3">
                   편집 유형 선택
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div
+                  className={`grid gap-2 ${assetType === "crypto" ? "grid-cols-4" : "grid-cols-3"}`}
+                >
                   <EditButton
                     type="ADD"
                     icon="➕"
@@ -138,6 +158,16 @@ export function EditAssetModal(props: PropType) {
                     setEditAction={setEditAction}
                     className="border-red-500 bg-red-500/20 text-red-400"
                   />
+                  {assetType === "crypto" && (
+                    <EditButton
+                      type="EDIT"
+                      icon="✏️"
+                      text="평단가 수정"
+                      editAction={editAction}
+                      setEditAction={setEditAction}
+                      className="border-purple-500 bg-purple-500/20 text-purple-400"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -156,48 +186,57 @@ export function EditAssetModal(props: PropType) {
                   </p>
                   <input type="hidden" name="amount" value={selectedEditData.amount} />
                 </div>
+              ) : editAction === "EDIT" ? (
+                <AveragePriceInput
+                  amount={selectedEditData.amount}
+                  defaultValue={selectedEditData.averagePrice}
+                />
               ) : (
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    {editAction === "ADD" ? "추가할" : "제거할"}{" "}
-                    {assetType === "crypto" ? "수량" : assetType === "stocks" ? "주식 수" : "금액"}
-                  </label>
-                  <input
-                    type="number"
-                    step={
-                      assetType === "crypto" ? "0.00000001" : assetType === "stocks" ? "1" : "0.01"
-                    }
-                    max={editAction === "REMOVE" ? selectedEditData.amount : undefined}
-                    placeholder={
-                      editAction === "ADD"
-                        ? "추가할 수량 입력"
-                        : `최대 ${selectedEditData.amount} ${selectedEditData.symbol}`
-                    }
-                    className={`w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none ${
-                      editAction === "ADD" ? "focus:border-blue-500" : "focus:border-orange-500"
-                    }`}
-                    name="amount"
-                    required
-                  />
-                  {editAction === "REMOVE" && (
-                    <p className="text-xs text-slate-400 mt-1">보유 수량을 초과할 수 없습니다.</p>
-                  )}
-                </div>
-              )}
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      {editAction === "ADD" ? "추가할" : "제거할"}{" "}
+                      {assetType === "crypto"
+                        ? "수량"
+                        : assetType === "stocks"
+                          ? "주식 수"
+                          : "금액"}
+                    </label>
+                    <input
+                      type="number"
+                      step={
+                        assetType === "crypto"
+                          ? "0.00000001"
+                          : assetType === "stocks"
+                            ? "1"
+                            : "0.01"
+                      }
+                      max={editAction === "REMOVE" ? selectedEditData.amount : undefined}
+                      placeholder={
+                        editAction === "ADD"
+                          ? "추가할 수량 입력"
+                          : `최대 ${selectedEditData.amount} ${selectedEditData.symbol}`
+                      }
+                      className={`w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none ${
+                        editAction === "ADD" ? "focus:border-blue-500" : "focus:border-orange-500"
+                      }`}
+                      name="amount"
+                      required
+                      onChange={(e) =>
+                        editAction === "ADD" && setAddAmount(parseFloat(e.target.value) || 0)
+                      }
+                    />
+                    {editAction === "REMOVE" && (
+                      <p className="text-xs text-slate-400 mt-1">
+                        보유 수량을 초과할 수 없습니다.
+                      </p>
+                    )}
+                  </div>
 
-              {editAction === "ADD" && assetType !== "cash" && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    평균 단가 (원)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="구매 평균 단가"
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
-                    name="averagePrice"
-                  />
-                </div>
+                  {editAction === "ADD" && assetType === "crypto" && (
+                    <AveragePriceInput amount={addAmount} />
+                  )}
+                </>
               )}
             </>
           )}
@@ -212,18 +251,20 @@ export function EditAssetModal(props: PropType) {
           </button>
           <button
             type="submit"
-            disabled={isAddPending || isRemovePending}
+            disabled={isPending}
             className={`flex-1 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
-              isAddPending || isRemovePending
+              isPending
                 ? "bg-slate-400 cursor-not-allowed"
                 : editAction === "DELETE"
-                ? "bg-red-600 hover:bg-red-700"
-                : editAction === "REMOVE"
-                ? "bg-orange-600 hover:bg-orange-700"
-                : "bg-blue-600 hover:bg-blue-700"
+                  ? "bg-red-600 hover:bg-red-700"
+                  : editAction === "REMOVE"
+                    ? "bg-orange-600 hover:bg-orange-700"
+                    : editAction === "EDIT"
+                      ? "bg-purple-600 hover:bg-purple-700"
+                      : "bg-blue-600 hover:bg-blue-700"
             } text-white`}
           >
-            {isAddPending || isRemovePending ? "처리 중..." : "업데이트"}
+            {isPending ? "처리 중..." : "업데이트"}
           </button>
         </div>
       </form>

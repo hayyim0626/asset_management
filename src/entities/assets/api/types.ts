@@ -28,6 +28,7 @@ export type UserCategory = {
   category: string;
   category_name: string;
   id: string;
+  averagePrice?: number;
 };
 
 export type CurrencyType = {
