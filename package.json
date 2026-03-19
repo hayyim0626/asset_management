@@ -23,6 +23,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.53.0",
     "@tanstack/react-query": "^5.85.3",
+    "embla-carousel-react": "^8.6.0",
     "next": "15.4.8",
     "react": "19.1.2",
     "react-dom": "19.1.2",

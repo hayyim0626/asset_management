@@ -1,12 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
 import { getAsset } from "@/entities/assets/api";
 import { getCoinPrice } from "@/entities/crypto/api/getCoinPrice";
 import { cookieUtils } from "@/shared/api/supabase/cookie";
 import { formatKrw, formatUsd } from "@/shared/lib/functions";
 import { AssetGroup } from "@/entities/assets/api/types";
-import { CoinPrice } from "@/entities/crypto/types";
 import { ASSET_LIST } from "@/features/assets/lib/consts";
+import { CoinBannerCarousel } from "./coinBannerCarousel";
 
 export async function Dashboard() {
   const { getAccessToken } = await cookieUtils();
@@ -145,27 +144,7 @@ export async function Dashboard() {
         <h2 className="text-xl font-semibold text-white mb-6">주요 코인 정보</h2>
 
         {priceData.coin.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {priceData.coin.map((coin: CoinPrice) => (
-              <div
-                key={coin.symbol}
-                className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-4 text-center border border-slate-700/50"
-              >
-                <div className="flex items-center justify-center gap-3">
-                  <Image
-                    src={coin.image}
-                    width={24}
-                    height={24}
-                    alt="coin_img"
-                    className="rounded-full"
-                  />
-                  <h3 className="font-semibold text-white">{coin.name}</h3>
-                </div>
-                <p className="text-lg font-bold text-blue-400 mt-2">{formatKrw(coin.price_krw)}</p>
-                <p className="text-lg font-bold text-blue-400">${formatUsd(coin.price_usd, 2)}</p>
-              </div>
-            ))}
-          </div>
+          <CoinBannerCarousel coins={priceData.coin} />
         ) : (
           <p className="text-slate-400 text-center py-8">코인 가격 정보를 불러오는 중...</p>
         )}
