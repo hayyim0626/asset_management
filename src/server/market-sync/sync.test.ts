@@ -18,7 +18,7 @@ const createCoinRow = (index: number, symbol = `COIN${index}`) => ({
   provider_id: `provider-${index}`,
   name: `Coin ${index}`,
   image: `https://example.com/${index}.png`,
-  current_price_usd: index + 1,
+  current_price_usd: index + 1.239,
   current_price_krw: (index + 1) * 1000,
   market_cap_usd: null,
   volume_24h_usd: null,
@@ -110,14 +110,14 @@ describe("syncMarketData", () => {
     expect(insertCalls[0]?.rows).toEqual([
       {
         coin_symbol: "BTC",
-        price_usd: 1,
+        price_usd: 1.24,
         price_krw: 1000,
         market_cap_usd: null,
         volume_24h_usd: null
       },
       {
         coin_symbol: "ETH",
-        price_usd: 2,
+        price_usd: 2.24,
         price_krw: 2000,
         market_cap_usd: null,
         volume_24h_usd: null
@@ -130,7 +130,7 @@ describe("syncMarketData", () => {
       },
       {
         currency_symbol: "USD",
-        exchange_rate: 1333.333333
+        exchange_rate: 1333.33
       }
     ]);
   });

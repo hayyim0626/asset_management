@@ -23,8 +23,8 @@ describe("formatKrw", () => {
 });
 
 describe("formatUsd", () => {
-  it("기본 최대 8자리 소수점", () => {
-    expect(formatUsd(1234.56789012)).toBe("1,234.56789012");
+  it("기본 최대 2자리 소수점", () => {
+    expect(formatUsd(1234.56789012)).toBe("1,234.57");
   });
 
   it("사용자 지정 최대 소수점 자리수로 숫자 포맷", () => {

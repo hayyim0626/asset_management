@@ -11,8 +11,7 @@ import { ASSET_LIST } from "@/features/assets/lib/consts";
 export async function Dashboard() {
   const { getAccessToken } = await cookieUtils();
   const token = getAccessToken() as string;
-  const assetData = await getAsset(token);
-  const priceData = await getCoinPrice();
+  const [assetData, priceData] = await Promise.all([getAsset(token), getCoinPrice()]);
 
   const totalValueArrByAsset = () => {
     const obj = { ...assetData.data };
@@ -163,7 +162,7 @@ export async function Dashboard() {
                   <h3 className="font-semibold text-white">{coin.name}</h3>
                 </div>
                 <p className="text-lg font-bold text-blue-400 mt-2">{formatKrw(coin.price_krw)}</p>
-                <p className="text-lg font-bold text-blue-400">${formatUsd(coin.price_usd)}</p>
+                <p className="text-lg font-bold text-blue-400">${formatUsd(coin.price_usd, 2)}</p>
               </div>
             ))}
           </div>

@@ -21,6 +21,12 @@ const chunk = <T>(rows: T[], size: number) => {
   return chunks;
 };
 
+const roundToDecimals = (value: number, decimals: number) => {
+  const factor = 10 ** decimals;
+
+  return Math.round(value * factor) / factor;
+};
+
 const getTrackedCoinSymbols = async () => {
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.from("coin_info").select("symbol");
@@ -73,7 +79,7 @@ const mapCoinPriceRows = (trackedSymbols: string[], providerCoins: MarketCoinRow
 
     return {
       coin_symbol: symbol,
-      price_usd: coin.current_price_usd,
+      price_usd: roundToDecimals(coin.current_price_usd, 2),
       price_krw: coin.current_price_krw,
       market_cap_usd: coin.market_cap_usd,
       volume_24h_usd: coin.volume_24h_usd
@@ -96,7 +102,7 @@ const mapCurrencyPriceRows = (
 
   return trackedCurrencies.map((currency) => ({
     currency_symbol: currency.symbol,
-    exchange_rate: rateBySymbol.get(currency.symbol)!.exchange_rate
+    exchange_rate: roundToDecimals(rateBySymbol.get(currency.symbol)!.exchange_rate, 2)
   }));
 };
 
