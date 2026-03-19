@@ -1,11 +1,15 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import LoginStatus from "./loginStatus";
-import { getUser } from "@/shared/api/auth/functions";
+import { useAuthSession } from "@/shared/auth/sessionContext";
 
-export async function Navbar() {
-  const result = await getUser();
-  const name = result?.name || null;
+export function Navbar() {
+  const pathname = usePathname();
+  const { user } = useAuthSession();
+  const isAuthCallback = pathname === "/auth/callback";
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900/90 backdrop-blur-sm border-b border-slate-700/50">
@@ -15,7 +19,7 @@ export async function Navbar() {
             <Image src={"/icon.png"} alt="logo" width={32} height={32} />
             <Image src={"/logo.png"} alt="logo" width={80} height={20} />
           </Link>
-          <LoginStatus user={name} />
+          {isAuthCallback ? <div className="w-[104px]" aria-hidden="true" /> : <LoginStatus user={user} />}
         </div>
       </div>
     </nav>

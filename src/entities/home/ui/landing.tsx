@@ -1,5 +1,3 @@
-import { GoogleLoginButton } from "@/features/auth/login/ui/googleLogin";
-
 export const dynamic = "force-static";
 
 export function LandingPage() {
@@ -22,10 +20,6 @@ export function LandingPage() {
               복잡한 자산 관리를 간단하게. Finote와 함께 스마트한 투자 여정을
               시작하세요.
             </p>
-
-            <div className="mt-10 flex justify-center">
-              <GoogleLoginButton />
-            </div>
 
             <div className="mt-12 flex items-center justify-center space-x-8 text-slate-400">
               <div className="flex items-center space-x-2">
@@ -197,9 +191,6 @@ export function LandingPage() {
           <p className="mt-4 text-lg leading-6 text-slate-300">
             구글 계정으로 간편하게 가입하고 스마트한 자산관리를 경험해보세요
           </p>
-          <div className="mt-8">
-            <GoogleLoginButton />
-          </div>
         </div>
       </div>
     </div>

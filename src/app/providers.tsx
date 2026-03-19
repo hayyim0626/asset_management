@@ -2,6 +2,7 @@
 
 import { isServer, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
+import { AuthSessionProvider } from "@/shared/auth/sessionContext";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -29,12 +30,20 @@ function getQueryClient() {
   }
 }
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+export default function Providers({
+  initialUser,
+  children
+}: {
+  initialUser: string | null;
+  children: React.ReactNode;
+}) {
   const queryClient = getQueryClient();
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      <Toaster />
+      <AuthSessionProvider initialUser={initialUser}>
+        {children}
+        <Toaster />
+      </AuthSessionProvider>
     </QueryClientProvider>
   );
 }

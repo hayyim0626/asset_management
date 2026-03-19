@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Navbar } from "@/widgets";
+import { getUser } from "@/shared/api/auth/functions";
 import Providers from "./providers";
 import "./globals.css";
 
@@ -19,15 +20,18 @@ export const metadata: Metadata = {
   description: "Supabase와 Next.js로 만들어보는 자산관리 앱노트"
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const result = await getUser();
+  const initialUser = result?.name || null;
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased pt-[52px]`}>
-        <Providers>
+        <Providers initialUser={initialUser}>
           <Navbar />
           <div className="min-h-screen bg-slate-950">{children}</div>
         </Providers>
