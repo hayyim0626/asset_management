@@ -102,7 +102,8 @@ const mapCurrencyPriceRows = (
 
   return trackedCurrencies.map((currency) => ({
     currency_symbol: currency.symbol,
-    exchange_rate: roundToDecimals(rateBySymbol.get(currency.symbol)!.exchange_rate, 2)
+    exchange_rate: roundToDecimals(rateBySymbol.get(currency.symbol)!.exchange_rate, 2),
+    provider_date: rateBySymbol.get(currency.symbol)!.provider_date
   }));
 };
 
@@ -131,10 +132,13 @@ export const syncMarketData = async () => {
   await insertRows<CoinPriceInsertRow>("coin_prices", coinPriceRows);
   await insertRows<CurrencyPriceInsertRow>("currency_prices", currencyPriceRows);
 
+  const fxProviderDate = currencyPriceRows[0]?.provider_date ?? null;
+
   return {
     startedAt,
     completedAt: new Date().toISOString(),
     coinCount: coinPriceRows.length,
-    exchangeRateCount: currencyPriceRows.length
+    exchangeRateCount: currencyPriceRows.length,
+    fxProviderDate
   };
 };

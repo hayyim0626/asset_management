@@ -83,12 +83,14 @@ describe("syncMarketData", () => {
       {
         symbol: "KRW",
         exchange_rate: 1,
-        last_updated: "2026-03-16T00:00:00.000Z"
+        last_updated: "2026-03-16T00:00:00.000Z",
+        provider_date: "2026-03-16"
       },
       {
         symbol: "USD",
         exchange_rate: 1333.333333,
-        last_updated: "2026-03-16T00:00:00.000Z"
+        last_updated: "2026-03-16T00:00:00.000Z",
+        provider_date: "2026-03-16"
       }
     ]);
 
@@ -98,7 +100,8 @@ describe("syncMarketData", () => {
       startedAt: "2026-03-16T10:00:00.000Z",
       completedAt: "2026-03-16T10:00:00.000Z",
       coinCount: 2,
-      exchangeRateCount: 2
+      exchangeRateCount: 2,
+      fxProviderDate: "2026-03-16"
     });
 
     expect(fetchFrankfurterRates).toHaveBeenCalledWith(["KRW", "USD"], "KRW");
@@ -126,11 +129,13 @@ describe("syncMarketData", () => {
     expect(insertCalls[1]?.rows).toEqual([
       {
         currency_symbol: "KRW",
-        exchange_rate: 1
+        exchange_rate: 1,
+        provider_date: "2026-03-16"
       },
       {
         currency_symbol: "USD",
-        exchange_rate: 1333.33
+        exchange_rate: 1333.33,
+        provider_date: "2026-03-16"
       }
     ]);
   });
@@ -167,7 +172,8 @@ describe("syncMarketData", () => {
       {
         symbol: "KRW",
         exchange_rate: 1,
-        last_updated: "2026-03-16T00:00:00.000Z"
+        last_updated: "2026-03-16T00:00:00.000Z",
+        provider_date: "2026-03-16"
       }
     ]);
 

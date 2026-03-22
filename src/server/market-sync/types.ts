@@ -15,6 +15,7 @@ export interface MarketFxRateRow {
   symbol: string;
   exchange_rate: number;
   last_updated: string;
+  provider_date: string;
 }
 
 export interface TrackedCurrencyRow {
@@ -33,4 +34,5 @@ export interface CoinPriceInsertRow {
 export interface CurrencyPriceInsertRow {
   currency_symbol: string;
   exchange_rate: number;
+  provider_date: string;
 }

@@ -118,9 +118,11 @@ describe("market sync providers", () => {
     expect(result[0]).toEqual({
       symbol: "KRW",
       exchange_rate: 1,
-      last_updated: "2026-03-16T00:00:00.000Z"
+      last_updated: "2026-03-16T00:00:00.000Z",
+      provider_date: "2026-03-16"
     });
     expect(result.find((item) => item.symbol === "USD")?.exchange_rate).toBeCloseTo(1333.333333, 6);
+    expect(result.find((item) => item.symbol === "USD")?.provider_date).toBe("2026-03-16");
     expect(result).toHaveLength(4);
   });
 
@@ -131,7 +133,8 @@ describe("market sync providers", () => {
       {
         symbol: "KRW",
         exchange_rate: 1,
-        last_updated: expect.any(String)
+        last_updated: expect.any(String),
+        provider_date: expect.any(String)
       }
     ]);
     expect(fetchMock).not.toHaveBeenCalled();

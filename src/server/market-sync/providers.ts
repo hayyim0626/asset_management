@@ -58,6 +58,14 @@ const toIsoString = (value: string | undefined) => {
   return date.toISOString();
 };
 
+const toDateOnly = (value: string | undefined) => {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new Error(`Invalid provider date: ${value ?? "undefined"}`);
+  }
+
+  return value;
+};
+
 const compareCoins = (left: MarketCoinRow, right: MarketCoinRow) => {
   if (left.rank !== null && right.rank !== null && left.rank !== right.rank) {
     return left.rank - right.rank;
@@ -133,11 +141,14 @@ export const fetchFrankfurterRates = async (
   const requestUrl = buildFrankfurterUrl(baseCurrency, trackedSymbols);
 
   if (!requestUrl) {
+    const providerDate = latestDateFallback.slice(0, 10);
+
     return [
       {
         symbol: baseCurrency,
         exchange_rate: 1,
-        last_updated: latestDateFallback
+        last_updated: latestDateFallback,
+        provider_date: providerDate
       }
     ];
   }
@@ -158,7 +169,8 @@ export const fetchFrankfurterRates = async (
     throw new Error("Frankfurter payload is missing rates");
   }
 
-  const latestDate = payload.date ? `${payload.date}T00:00:00.000Z` : latestDateFallback;
+  const providerDate = payload.date ? toDateOnly(payload.date) : latestDateFallback.slice(0, 10);
+  const latestDate = `${providerDate}T00:00:00.000Z`;
 
   return trackedSymbols.map((symbol) => {
     const exchangeRate = symbol === baseCurrency ? 1 : 1 / toNumber(payload.rates?.[symbol], symbol);
@@ -166,7 +178,8 @@ export const fetchFrankfurterRates = async (
     return {
       symbol,
       exchange_rate: exchangeRate,
-      last_updated: latestDate
+      last_updated: latestDate,
+      provider_date: providerDate
     };
   });
 };

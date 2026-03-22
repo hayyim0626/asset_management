@@ -37,6 +37,7 @@ export type CurrencyType = {
   symbol: string;
   image: string;
   exchangeRate: number;
+  providerDate?: string;
 };
 
 export type CoinlistType = {
