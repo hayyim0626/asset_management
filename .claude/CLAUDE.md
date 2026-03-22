@@ -1,0 +1,1 @@
+/Users/hong-yechan/asset_management/agents/root.md
