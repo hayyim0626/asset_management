@@ -8,9 +8,10 @@ interface PropType {
   onClose: () => void;
   children: React.ReactNode;
   title: string;
+  maxWidthClassName?: string;
 }
 
-export function Modal({ isOpen, onClose, children, title }: PropType) {
+export function Modal({ isOpen, onClose, children, title, maxWidthClassName = "max-w-md" }: PropType) {
   if (!isOpen) return null;
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -24,7 +25,7 @@ export function Modal({ isOpen, onClose, children, title }: PropType) {
       onClick={handleBackdropClick}
       className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
     >
-      <div className="bg-slate-900 rounded-xl border border-slate-700 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className={`bg-slate-900 rounded-xl border border-slate-700 w-full ${maxWidthClassName} max-h-[90vh] overflow-y-auto`}>
         <div className="flex items-center justify-between p-6 border-b border-slate-700">
           <h2 className="text-xl font-semibold text-white">{title}</h2>
           <button

@@ -5,6 +5,8 @@ interface FormData {
   assetType: string;
   symbol: string;
   amount: number;
+  eventDate?: string;
+  sellPrice?: number;
   category?: string;
   categoryName?: string;
 }
@@ -15,6 +17,8 @@ export const removeAsset = async (formData: FormData, accessToken: string) => {
       p_asset_type: formData.assetType,
       p_symbol: formData.symbol,
       p_amount: formData.amount,
+      p_event_date: formData.eventDate || null,
+      p_sell_price: formData.sellPrice || null,
       p_category: formData.category || "other",
       p_category_name: formData.categoryName || "기타"
     };

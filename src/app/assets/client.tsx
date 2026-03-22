@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useState, useMemo } from "react";
 import { AssetSection } from "@/features/assets/ui/assetSection";
@@ -16,6 +15,9 @@ import { AssetType } from "@/entities/assets/types";
 import { SvgIcon } from "@/shared/ui";
 import { calcTotalProfitLoss } from "@/features/assets/lib/profitLoss";
 import { ProfitLossDisplay } from "@/features/assets/ui/components/ProfitLossDisplay";
+import { handleAddAsset } from "@/features/assets/model/functions";
+import { searchStocksClient } from "@/entities/stocks/api/searchStocks.client";
+import toast from "react-hot-toast";
 
 interface PropType {
   data: UserPortfolio;
@@ -32,7 +34,7 @@ export function AssetClient({ data, currencyList, coinList, category }: PropType
   const [isFirstAdd, setIsFirstAdd] = useState(false);
 
   const cryptoProfitLoss = useMemo(() => {
-    const result = calcTotalProfitLoss(data.crypto.assets);
+    const result = calcTotalProfitLoss(data.crypto.assets, "crypto");
     if (!result) return null;
     const percent =
       result.totalInvestmentKrw > 0
@@ -41,16 +43,20 @@ export function AssetClient({ data, currencyList, coinList, category }: PropType
     return { percent, amountKrw: result.totalKrw };
   }, [data.crypto.assets]);
 
-  const dropdownData = useMemo(() => {
-    switch (assetType) {
-      case "cash":
-        return currencyList;
-      case "crypto":
-        return coinList;
-      default:
-        return currencyList;
-    }
-  }, [assetType]);
+  const stockProfitLoss = useMemo(() => {
+    const result = calcTotalProfitLoss(data.stocks.assets, "stocks");
+    if (!result) return null;
+    const percent =
+      result.totalInvestmentKrw > 0
+        ? ((result.totalValueKrw - result.totalInvestmentKrw) / result.totalInvestmentKrw) * 100
+        : 0;
+    return { percent, amountKrw: result.totalKrw };
+  }, [data.stocks.assets]);
+
+  const usdKrwRate = useMemo(
+    () => currencyList.find((item) => item.code === "USD" || item.symbol === "USD")?.exchangeRate ?? null,
+    [currencyList]
+  );
 
   const openAddModal = (assetType: AssetType | null = null) => {
     setAssetType(assetType);
@@ -60,6 +66,7 @@ export function AssetClient({ data, currencyList, coinList, category }: PropType
   const closeAddModal = () => {
     setIsModalOpen(false);
     setAssetType(null);
+    setIsFirstAdd(false);
   };
 
   const openEditModal = (assetType: AssetType, asset: EditAssetType) => {
@@ -113,6 +120,12 @@ export function AssetClient({ data, currencyList, coinList, category }: PropType
               <div className="text-center">
                 <p className="text-slate-400">주식</p>
                 <p className="text-white font-semibold">{formatKrw(data.stocks.totalValue.krw)}</p>
+                {stockProfitLoss && (
+                  <ProfitLossDisplay
+                    percent={stockProfitLoss.percent}
+                    amountKrw={stockProfitLoss.amountKrw}
+                  />
+                )}
               </div>
               <div className="text-center">
                 <p className="text-slate-400">현금</p>
@@ -157,18 +170,26 @@ export function AssetClient({ data, currencyList, coinList, category }: PropType
         isOpen={isAddModalOpen}
         onClose={closeAddModal}
         isFirstAdd={isFirstAdd}
-        setIsFirstAdd={setIsFirstAdd}
         assetType={assetType}
         setAssetType={setAssetType}
-        dropdownData={dropdownData}
-        categoryList={category[assetType!]}
+        currencyOptions={currencyList}
+        coinOptions={coinList}
+        usdKrwRate={usdKrwRate}
+        categoryList={assetType ? category[assetType] ?? [] : []}
+        dependencies={{
+          submitAction: handleAddAsset,
+          searchStocks: searchStocksClient,
+          notifySuccess: (message) => toast.success(message),
+          notifyError: (message) => toast.error(message)
+        }}
       />
       <EditAssetModal
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
         assetType={assetType}
         selectedEditData={selectedEditData}
-        categoryList={category[assetType!]}
+        categoryList={assetType ? category[assetType] ?? [] : []}
+        currencyList={currencyList}
       />
     </div>
   );

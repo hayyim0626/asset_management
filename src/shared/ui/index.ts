@@ -2,3 +2,4 @@ export { Modal } from "./modal";
 export { SvgIcon } from "./svgIcon";
 export { Dropdown } from "./dropdown";
 export { Tooltip } from "./tooltip";
+export { BinarySwitch } from "./binarySwitch";

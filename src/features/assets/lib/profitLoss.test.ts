@@ -1,4 +1,5 @@
 import {
+  calcAssetProfitLoss,
   calcProfitLossPercent,
   calcProfitLossKrw,
   calcProfitLossUsd,
@@ -99,7 +100,12 @@ describe("calcAvgPriceFromTotal", () => {
 describe("calcTotalProfitLoss", () => {
   const makeAsset = (
     currentPriceKrw: number,
-    categories: { amount: number; averagePrice?: number }[]
+    categories: {
+      amount: number;
+      averagePrice?: number;
+      averagePriceUsd?: number;
+      averagePriceKrw?: number;
+    }[]
   ): AssetItem => ({
     amount: categories.reduce((sum, c) => sum + c.amount, 0),
     symbol: "BTC",
@@ -108,13 +114,18 @@ describe("calcTotalProfitLoss", () => {
       category: "exchange",
       category_name: "test",
       id: String(i),
-      averagePrice: c.averagePrice
+      averagePrice: c.averagePrice,
+      averagePriceUsd: c.averagePriceUsd,
+      averagePriceKrw: c.averagePriceKrw
     })),
     currentPrice: { krw: currentPriceKrw, usd: currentPriceKrw / 1350 },
     id: "1",
     image: "",
     name: "Bitcoin",
-    value: { krw: 0, usd: 0 }
+    value: {
+      krw: currentPriceKrw * categories.reduce((sum, c) => sum + c.amount, 0),
+      usd: (currentPriceKrw / 1350) * categories.reduce((sum, c) => sum + c.amount, 0)
+    }
   });
 
   it("전체 합산 손익 계산", () => {
@@ -146,5 +157,19 @@ describe("calcTotalProfitLoss", () => {
     expect(result).not.toBeNull();
     expect(result!.totalKrw).toBe(100000); // (150000-100000)*2
     expect(result!.totalInvestmentKrw).toBe(200000);
+  });
+
+  it("주식 손익도 USD 기준으로 계산할 수 있다", () => {
+    const stockAsset = makeAsset(270000, [{ amount: 2, averagePriceUsd: 180 }]);
+    stockAsset.symbol = "AAPL";
+    stockAsset.currentPrice = { krw: 270000, usd: 200 };
+    stockAsset.value = { krw: 540000, usd: 400 };
+
+    const result = calcAssetProfitLoss(stockAsset, "stocks");
+
+    expect(result).not.toBeNull();
+    expect(result?.percent).toBeCloseTo(11.111111, 5);
+    expect(result?.amountKrw).toBe(54000);
+    expect(result?.amountUsd).toBe(40);
   });
 });

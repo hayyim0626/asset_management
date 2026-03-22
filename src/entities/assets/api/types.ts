@@ -1,4 +1,14 @@
-type FiatValue = { krw: number; usd: number };
+export type FiatValue = { krw: number; usd: number };
+
+export type QuoteStatus = "fresh" | "stale" | "failed";
+
+export type AssetSubType = "US_STOCK" | "US_ETF" | "USD_CASH" | "DIVIDEND" | "DEPOSIT";
+
+export type ProfitLossValue = {
+  percent: number;
+  amountKrw: number;
+  amountUsd: number | null;
+};
 
 export type UserPortfolio = {
   totalValue: FiatValue;
@@ -21,6 +31,15 @@ export type AssetItem = {
   image: string;
   name: string;
   value: FiatValue;
+  lastUpdated?: string | null;
+  quoteStatus?: QuoteStatus;
+  isStale?: boolean;
+  staleReason?: string | null;
+  lastSuccessfulFetchedAt?: string | null;
+  profitLoss?: ProfitLossValue | null;
+  assetSubType?: AssetSubType;
+  exchange?: string | null;
+  market?: string | null;
 };
 
 export type UserCategory = {
@@ -29,6 +48,13 @@ export type UserCategory = {
   category_name: string;
   id: string;
   averagePrice?: number;
+  averagePriceUsd?: number;
+  averagePriceKrw?: number;
+  totalCostUsd?: number;
+  totalCostKrw?: number;
+  realizedLabel?: string;
+  assetSubType?: AssetSubType;
+  eventDate?: string | null;
 };
 
 export type CurrencyType = {

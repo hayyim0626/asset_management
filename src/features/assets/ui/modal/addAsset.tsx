@@ -1,238 +1,138 @@
 "use client";
 
-import { useState } from "react";
-import { CategoryList, CoinlistType, CurrencyType } from "@/entities/assets/api/types";
-import { Modal, Dropdown } from "@/shared/ui";
-import { ASSET_LIST } from "@/features/assets/lib/consts";
+import type { CategoryList, CoinlistType, CurrencyType } from "@/entities/assets/api/types";
 import type { AssetType } from "@/entities/assets/types";
-import { useAddAssetForm } from "@/features/assets/model/hooks/useAddAssetForm";
-import { handleAddAsset } from "@/features/assets/model/functions";
-import { categoryNamePlaceholder } from "@/features/assets/lib/functions";
-import { AssetImage } from "@/entities/assets/ui";
-import { AveragePriceInput } from "../components/AveragePriceInput";
-import toast from "react-hot-toast";
+import {
+  buildAddAssetHiddenFields,
+  useAddAssetDraft,
+  useAddAssetSubmission,
+  useStockPicker,
+  type AddAssetDependencies
+} from "@/features/assets/model/add-asset";
+import { AddAssetModalShell } from "./addAsset/AddAssetModalShell";
+import { AddAssetTypePicker } from "./addAsset/AddAssetTypePicker";
+import {
+  AddCashAssetForm,
+  AddCryptoAssetForm,
+  AddStockAssetForm,
+  StockSearchModal
+} from "./addAsset/forms";
 
 interface PropType {
   isOpen: boolean;
   onClose: () => void;
   isFirstAdd: boolean;
-  setIsFirstAdd: (val: boolean) => void;
   assetType: AssetType | null;
   setAssetType: (type: AssetType | null) => void;
-  dropdownData: CurrencyType[] | CoinlistType[];
+  currencyOptions: CurrencyType[];
+  coinOptions: CoinlistType[];
+  usdKrwRate: number | null;
   categoryList: CategoryList[];
+  dependencies: AddAssetDependencies;
 }
 
-export function AddAssetModal(props: PropType) {
-  const {
-    isOpen,
+export function AddAssetModal({
+  isOpen,
+  onClose,
+  isFirstAdd,
+  assetType,
+  setAssetType,
+  currencyOptions,
+  coinOptions,
+  usdKrwRate,
+  categoryList,
+  dependencies
+}: PropType) {
+  const { state, dispatch, selectors } = useAddAssetDraft(isOpen, assetType);
+  const { formAction, isPending } = useAddAssetSubmission({
+    submitAction: dependencies.submitAction,
     onClose,
-    isFirstAdd,
-    setIsFirstAdd,
-    assetType,
-    setAssetType,
-    dropdownData,
-    categoryList
-  } = props;
-  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
-  const [amountValue, setAmountValue] = useState(0);
-
-  const {
-    selectedAsset,
-    selectedCategory,
-    isAddPending,
-    addFormAction,
-    handleCurrencySelect,
-    handleCategorySelect
-  } = useAddAssetForm({
-    isOpen,
-    handleAddAsset,
-    onClose,
-    setAssetType,
-    setIsFirstAdd
+    notifySuccess: dependencies.notifySuccess,
+    notifyError: dependencies.notifyError
   });
-
-  const handleClickAssetType = (type: AssetType) => {
-    if (type === "stocks") {
-      toast("⚠️ 현재 주식 자산관리 서비스는 준비중이에요!");
-      return;
-    }
-    setAssetType(type);
-  };
+  const { results: stockResults, isLoading: isStockLoading } = useStockPicker({
+    enabled: state.assetType === "stocks" && state.stocks.isSearchOpen,
+    query: state.stocks.searchQuery,
+    searchStocks: dependencies.searchStocks
+  });
+  const hiddenFields = buildAddAssetHiddenFields(state);
 
   return (
-    <Modal title="자산 추가" isOpen={isOpen} onClose={onClose}>
-      <form action={addFormAction}>
-        {assetType && <input type="hidden" name="assetType" value={assetType} />}
-        {selectedAsset && <input type="hidden" name="symbol" value={selectedAsset} />}
-        {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
-        <div
-          className={`p-6 space-y-6 transition-all duration-200 ${
-            isCategoryDropdownOpen ? "min-h-[510px]" : ""
-          }`}
-        >
+    <>
+      <AddAssetModalShell
+        isOpen={isOpen && !state.stocks.isSearchOpen}
+        onClose={onClose}
+        formAction={formAction}
+        hiddenFields={hiddenFields}
+        isPending={isPending}
+        isSubmitDisabled={selectors.isSubmitBlocked}
+      >
+        <div className="p-6 space-y-6">
           {isFirstAdd && (
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-3">
-                자산 유형 선택
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {ASSET_LIST.map((el) => (
-                  <button
-                    key={el.value}
-                    onClick={() => handleClickAssetType(el.value)}
-                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                      assetType === el.value
-                        ? "border-blue-500 bg-blue-500/20 text-blue-400"
-                        : "border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500"
-                    }`}
-                  >
-                    <div className="text-center">
-                      <div className="text-lg mb-1">{el.emoji}</div>
-                      <div className="text-xs">{el.name}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <AddAssetTypePicker
+              assetType={state.assetType}
+              onSelect={(type) => setAssetType(type)}
+            />
           )}
-          <div className="space-y-4">
-            {assetType && (
-              <div>
-                {assetType !== "stocks" ? (
-                  <Dropdown>
-                    <Dropdown.Label>
-                      {assetType === "crypto" ? "코인명/심볼" : "통화"}
-                    </Dropdown.Label>
-                    <Dropdown.Trigger
-                      placeholder={`${assetType === "cash" ? "통화를" : "코인을"} 선택해주세요`}
-                    >
-                      {selectedAsset
-                        ? () => {
-                            const selected = dropdownData.find((el) => el.symbol === selectedAsset);
-                            return (
-                              <>
-                                <div className="flex items-center space-x-3">
-                                  {assetType && (
-                                    <AssetImage assetType={assetType} src={selected?.image || ""} />
-                                  )}
-                                  <div className="flex items-center space-x-2">
-                                    <span className="font-medium">{selected?.symbol}</span>
-                                    <span className="text-slate-400">-</span>
-                                    <span className="text-sm text-slate-400">{selected?.name}</span>
-                                  </div>
-                                </div>
-                              </>
-                            );
-                          }
-                        : null}
-                    </Dropdown.Trigger>
-                    <Dropdown.Container>
-                      {dropdownData.map((el) => (
-                        <Dropdown.ItemList
-                          onSelect={handleCurrencySelect}
-                          selectedValue={selectedAsset}
-                          key={el.name}
-                          value={el.symbol}
-                        >
-                          <>
-                            {assetType && <AssetImage assetType={assetType} src={el.image} />}
-                            <div className="flex items-center space-x-2 flex-1">
-                              <span className="font-medium">{el.symbol}</span>
-                              <span>-</span>
-                              <span className="text-sm">{el.name}</span>
-                            </div>
-                          </>
-                        </Dropdown.ItemList>
-                      ))}
-                    </Dropdown.Container>
-                  </Dropdown>
-                ) : (
-                  // 주식일 때 기존 입력 필드
-                  <input
-                    type="text"
-                    name="symbol"
-                    required
-                    placeholder={"AAPL, TSLA 등"}
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
-                  />
-                )}
-              </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                {assetType === "crypto" && "보유 수량"}
-                {assetType === "stocks" && "보유 주식 수"}
-                {assetType === "cash" && "보유 금액"}
-              </label>
-              <input
-                type="number"
-                step={assetType === "crypto" ? "0.00000001" : assetType === "stocks" ? "1" : "0.01"}
-                placeholder="수량 입력"
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
-                name="amount"
-                required
-                onChange={(e) => setAmountValue(parseFloat(e.target.value) || 0)}
-              />
-            </div>
-            {assetType === "crypto" && <AveragePriceInput amount={amountValue} />}
-            <Dropdown onOpenChange={setIsCategoryDropdownOpen}>
-              <Dropdown.Label>카테고리</Dropdown.Label>
-              <Dropdown.Trigger placeholder="카테고리를 선택해주세요">
-                {selectedCategory && (
-                  <span className="font-medium">
-                    {categoryList?.find((item) => item.code === selectedCategory)?.name}
-                  </span>
-                )}
-              </Dropdown.Trigger>
-              <Dropdown.Container>
-                {categoryList?.map((el) => (
-                  <Dropdown.ItemList
-                    key={el.id}
-                    selectedValue={selectedCategory}
-                    value={el.code}
-                    onSelect={handleCategorySelect}
-                  >
-                    {el.name}
-                  </Dropdown.ItemList>
-                ))}
-              </Dropdown.Container>
-            </Dropdown>
-            {selectedCategory && (
-              <>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  카테고리 상세
-                </label>
-                <input
-                  type="text"
-                  placeholder={`예) ${categoryNamePlaceholder({ assetType, selectedCategory })}`}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
-                  name="categoryName"
-                  required
-                />
-              </>
-            )}
-          </div>
+
+          {state.assetType === "cash" && (
+            <AddCashAssetForm
+              currencyOptions={currencyOptions}
+              categoryList={categoryList}
+              selectedSymbol={state.cash.symbol}
+              selectedCategory={state.cash.category}
+              categoryName={state.cash.categoryName}
+              amount={state.cash.amount}
+              onSelectSymbol={(symbol) => dispatch({ type: "set_cash_symbol", symbol })}
+              onSelectCategory={(category) => dispatch({ type: "set_cash_category", category })}
+              onChangeCategoryName={(categoryName) =>
+                dispatch({ type: "set_cash_category_name", categoryName })
+              }
+              onChangeAmount={(amount) => dispatch({ type: "set_cash_amount", amount })}
+            />
+          )}
+
+          {state.assetType === "crypto" && (
+            <AddCryptoAssetForm
+              coinOptions={coinOptions}
+              categoryList={categoryList}
+              selectedSymbol={state.crypto.symbol}
+              selectedCategory={state.crypto.category}
+              categoryName={state.crypto.categoryName}
+              amount={state.crypto.amount}
+              onSelectSymbol={(symbol) => dispatch({ type: "set_crypto_symbol", symbol })}
+              onSelectCategory={(category) => dispatch({ type: "set_crypto_category", category })}
+              onChangeCategoryName={(categoryName) =>
+                dispatch({ type: "set_crypto_category_name", categoryName })
+              }
+              onChangeAmount={(amount) => dispatch({ type: "set_crypto_amount", amount })}
+            />
+          )}
+
+          {state.assetType === "stocks" && (
+            <AddStockAssetForm
+              selectedStock={state.stocks.selectedStock}
+              stockCategoryName={selectors.stockCategoryName}
+              amount={state.stocks.amount}
+              eventDate={state.stocks.eventDate}
+              usdKrwRate={usdKrwRate}
+              onOpenSearch={() => dispatch({ type: "open_stock_search" })}
+              onChangeAmount={(amount) => dispatch({ type: "set_stock_amount", amount })}
+              onChangeEventDate={(eventDate) => dispatch({ type: "set_stock_event_date", eventDate })}
+            />
+          )}
         </div>
-        <div className="flex space-x-3 p-6 border-t border-slate-700">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors cursor-pointer"
-          >
-            취소
-          </button>
-          <button
-            type="submit"
-            disabled={isAddPending}
-            className={`flex-1 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
-              isAddPending ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-            } text-white`}
-          >
-            {isAddPending ? "추가 중..." : "추가하기"}
-          </button>
-        </div>
-      </form>
-    </Modal>
+      </AddAssetModalShell>
+
+      <StockSearchModal
+        isOpen={isOpen && state.stocks.isSearchOpen}
+        query={state.stocks.searchQuery}
+        results={stockResults}
+        isLoading={isStockLoading}
+        onClose={() => dispatch({ type: "close_stock_search" })}
+        onChangeQuery={(query) => dispatch({ type: "set_stock_search_query", query })}
+        onSelectStock={(stock) => dispatch({ type: "select_stock", stock })}
+      />
+    </>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
-import { useMemo } from "react";
+
 import type { AssetItem } from "@/entities/assets/api/types";
 import type { AssetType } from "@/entities/assets/types";
 import { AssetImage } from "@/entities/assets/ui";
-import { formatKrw } from "@/shared/lib/functions";
+import { formatDateTimeKorean, formatKrw, formatUsdCurrency } from "@/shared/lib/functions";
 import { SvgIcon } from "@/shared/ui";
-import { calcProfitLossPercent, calcProfitLossKrw } from "@/features/assets/lib/profitLoss";
+import { calcAssetProfitLoss } from "@/features/assets/lib/profitLoss";
 import { ProfitLossDisplay } from "./components/ProfitLossDisplay";
 
 interface PropType {
@@ -18,30 +18,12 @@ interface PropType {
 export function ListButton(props: PropType) {
   const { asset, toggleAsset, type, expandedAssets } = props;
   const isExpanded = expandedAssets.has(asset.id);
-
-  const profitLoss = useMemo(() => {
-    if (type !== "crypto") return null;
-
-    let totalInvestment = 0;
-    let totalAmount = 0;
-    let hasAvgPrice = false;
-
-    for (const cat of asset.categories) {
-      if (cat.averagePrice != null && cat.averagePrice > 0) {
-        hasAvgPrice = true;
-        totalInvestment += cat.averagePrice * cat.amount;
-        totalAmount += cat.amount;
-      }
-    }
-
-    if (!hasAvgPrice || totalAmount === 0) return null;
-
-    const weightedAvgPrice = totalInvestment / totalAmount;
-    const percent = calcProfitLossPercent(asset.currentPrice.krw, weightedAvgPrice);
-    const amountKrw = calcProfitLossKrw(asset.currentPrice.krw, weightedAvgPrice, totalAmount);
-
-    return { percent, amountKrw };
-  }, [asset, type]);
+  const profitLoss = calcAssetProfitLoss(asset, type);
+  const isStock = type === "stocks";
+  const quoteLabel = isStock
+    ? `1주 ≈ ${formatUsdCurrency(asset.currentPrice.usd)} / ${formatKrw(asset.currentPrice.krw)}`
+    : `1${asset.symbol} ≈ ${formatKrw(asset.currentPrice.krw)}`;
+  const lastUpdatedLabel = formatDateTimeKorean(asset.lastUpdated ?? asset.lastSuccessfulFetchedAt);
 
   return (
     <button
@@ -50,25 +32,46 @@ export function ListButton(props: PropType) {
     >
       <div className="flex items-center space-x-4">
         <div className="w-10 h-10 rounded-full bg-slate-800 flex justify-center items-center">
-          <AssetImage assetType={type} src={asset.image} imageWidth={26} emojiSize="text-3xl" />
+          <AssetImage
+            assetType={type}
+            src={asset.image}
+            imageWidth={26}
+            emojiSize="text-3xl"
+            fallbackText={asset.symbol}
+          />
         </div>
         <div className="text-start">
-          <p className="text-white font-medium">{asset.name}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-white font-medium">{asset.name}</p>
+            {isStock && asset.quoteStatus && asset.quoteStatus !== "fresh" && (
+              <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 text-[10px] font-medium text-amber-300">
+                stale
+              </span>
+            )}
+          </div>
           <p className="text-slate-400 text-sm">
-            1{type === "stocks" ? "주" : asset.symbol} ≈ {formatKrw(asset.currentPrice.krw)}
+            {quoteLabel}
           </p>
+          {isStock && lastUpdatedLabel && (
+            <p className="text-[11px] text-slate-500">마지막 갱신 {lastUpdatedLabel}</p>
+          )}
         </div>
       </div>
       <div className="flex items-center space-x-3">
         <div className="text-right">
           <p className="text-white font-semibold">{formatKrw(asset.value.krw)}</p>
+          {isStock && <p className="text-slate-400 text-sm">{formatUsdCurrency(asset.value.usd)}</p>}
           <p className="text-slate-400 text-sm">
             {type === "cash"
               ? `${asset.amount.toLocaleString()} ${asset.symbol}`
               : `${asset.amount} ${asset.symbol}`}
           </p>
           {profitLoss && (
-            <ProfitLossDisplay percent={profitLoss.percent} amountKrw={profitLoss.amountKrw} />
+            <ProfitLossDisplay
+              percent={profitLoss.percent}
+              amountKrw={profitLoss.amountKrw}
+              amountUsd={profitLoss.amountUsd}
+            />
           )}
         </div>
         <SvgIcon

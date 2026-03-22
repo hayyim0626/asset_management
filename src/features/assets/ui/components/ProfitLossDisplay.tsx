@@ -1,6 +1,10 @@
 "use client";
 
-import { formatProfitLossPercent, formatProfitLossKrw, formatUsd } from "@/shared/lib/functions";
+import {
+  formatProfitLossPercent,
+  formatProfitLossKrw,
+  formatProfitLossUsd
+} from "@/shared/lib/functions";
 
 interface PropType {
   percent: number | null;
@@ -21,7 +25,7 @@ export function ProfitLossDisplay({ percent, amountKrw, amountUsd, size = "sm" }
         <span className="text-lg font-semibold">{formatProfitLossPercent(percent)}</span>
         <span className="text-sm ml-2">
           ({formatProfitLossKrw(amountKrw)}
-          {amountUsd != null && ` / $${formatUsd(Math.abs(amountUsd), 2)}`})
+          {amountUsd != null && ` / ${formatProfitLossUsd(amountUsd)}`})
         </span>
       </div>
     );
@@ -30,7 +34,7 @@ export function ProfitLossDisplay({ percent, amountKrw, amountUsd, size = "sm" }
   return (
     <span className={`text-xs ${colorClass}`}>
       {formatProfitLossPercent(percent)} ({formatProfitLossKrw(amountKrw)}
-      {amountUsd != null && ` / $${formatUsd(Math.abs(amountUsd), 2)}`})
+      {amountUsd != null && ` / ${formatProfitLossUsd(amountUsd)}`})
     </span>
   );
 }

@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
-    domains: ["assets.coingecko.com"]
+    domains: ["assets.coingecko.com", "static.coinpaprika.com"]
   }
 };
 

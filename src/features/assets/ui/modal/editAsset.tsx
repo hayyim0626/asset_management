@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import type { AssetType } from "@/entities/assets/types";
-import type { CategoryList } from "@/entities/assets/api/types";
+import type { CategoryList, CurrencyType } from "@/entities/assets/api/types";
 import type { EditAssetType } from "../assetSection";
 import { Modal } from "@/shared/ui";
 import { formatUsd } from "@/shared/lib/functions";
@@ -11,6 +10,7 @@ import { handleAddAsset, handleRemoveAsset } from "@/features/assets/model/funct
 import { handleEditAvgPrice } from "@/features/assets/model/functions/handleEditAvgPrice";
 import { useEditAssetForm } from "@/features/assets/model/hooks";
 import { AveragePriceInput } from "../components/AveragePriceInput";
+import { AssetImage } from "@/entities/assets/ui";
 
 type EditType = "ADD" | "REMOVE" | "DELETE" | "EDIT";
 
@@ -20,6 +20,7 @@ interface PropType {
   assetType: AssetType | null;
   selectedEditData: EditAssetType | null;
   categoryList: CategoryList[];
+  currencyList: CurrencyType[];
 }
 
 function EditButton({
@@ -56,7 +57,7 @@ function EditButton({
 }
 
 export function EditAssetModal(props: PropType) {
-  const { isOpen, onClose, assetType, selectedEditData, categoryList } = props;
+  const { isOpen, onClose, assetType, selectedEditData, categoryList, currencyList } = props;
   const [addAmount, setAddAmount] = useState(0);
 
   const {
@@ -77,6 +78,8 @@ export function EditAssetModal(props: PropType) {
   });
 
   const category = categoryList?.find((el) => el.code === selectedEditData?.category)?.name;
+  const usdKrwRate =
+    currencyList.find((item) => item.code === "USD" || item.symbol === "USD")?.exchangeRate ?? null;
 
   const getFormAction = () => {
     if (editAction === "EDIT") return editFormAction;
@@ -100,29 +103,27 @@ export function EditAssetModal(props: PropType) {
         {selectedEditData && (
           <input type="hidden" name="categoryId" value={selectedEditData.id} />
         )}
+
         <div className="p-6 space-y-6">
           {selectedEditData && (
             <>
               <div className="flex items-center space-x-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
                 <div className="w-10 h-10 rounded-full bg-slate-800 flex justify-center items-center">
-                  {assetType === "cash" ? (
-                    <span className="text-3xl">{selectedEditData.image}</span>
-                  ) : (
-                    <Image
-                      src={selectedEditData.image}
-                      width={26}
-                      height={26}
-                      alt="asset_img"
-                      className="rounded-full"
-                    />
-                  )}
+                  <AssetImage
+                    assetType={assetType ?? "crypto"}
+                    src={selectedEditData.image}
+                    imageWidth={26}
+                    emojiSize="text-3xl"
+                    fallbackText={selectedEditData.symbol}
+                  />
                 </div>
                 <div>
                   <p className="text-white font-medium">
                     {selectedEditData.name} / {category} ({selectedEditData.category_name})
                   </p>
                   <p className="text-slate-400 text-sm">
-                    현재 보유량: {formatUsd(selectedEditData.amount)} {selectedEditData.symbol}
+                    현재 보유량: {formatUsd(selectedEditData.amount, assetType === "stocks" ? 4 : 2)}{" "}
+                    {selectedEditData.symbol}
                   </p>
                 </div>
               </div>
@@ -132,7 +133,11 @@ export function EditAssetModal(props: PropType) {
                   편집 유형 선택
                 </label>
                 <div
-                  className={`grid gap-2 ${assetType === "crypto" ? "grid-cols-4" : "grid-cols-3"}`}
+                  className={`grid gap-2 ${
+                    assetType === "crypto" || assetType === "stocks"
+                      ? "grid-cols-4"
+                      : "grid-cols-3"
+                  }`}
                 >
                   <EditButton
                     type="ADD"
@@ -158,11 +163,11 @@ export function EditAssetModal(props: PropType) {
                     setEditAction={setEditAction}
                     className="border-red-500 bg-red-500/20 text-red-400"
                   />
-                  {assetType === "crypto" && (
+                  {(assetType === "crypto" || assetType === "stocks") && (
                     <EditButton
                       type="EDIT"
                       icon="✏️"
-                      text="평단가 수정"
+                      text={assetType === "stocks" ? "원가 수정" : "평단가 수정"}
                       editAction={editAction}
                       setEditAction={setEditAction}
                       className="border-purple-500 bg-purple-500/20 text-purple-400"
@@ -187,10 +192,42 @@ export function EditAssetModal(props: PropType) {
                   <input type="hidden" name="amount" value={selectedEditData.amount} />
                 </div>
               ) : editAction === "EDIT" ? (
-                <AveragePriceInput
-                  amount={selectedEditData.amount}
-                  defaultValue={selectedEditData.averagePrice}
-                />
+                <>
+                  {assetType === "stocks" && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">
+                        기준일
+                      </label>
+                      <input
+                        type="date"
+                        name="eventDate"
+                        className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+                  )}
+                  <AveragePriceInput
+                    amount={selectedEditData.amount}
+                    defaultValue={
+                      assetType === "stocks"
+                        ? selectedEditData.averagePriceUsd ?? selectedEditData.averagePrice
+                        : selectedEditData.averagePrice
+                    }
+                    currencyCode={assetType === "stocks" ? "USD" : "KRW"}
+                    storageCurrency={assetType === "stocks" ? "USD" : "KRW"}
+                    availableCurrencies={assetType === "stocks" ? ["USD", "KRW"] : ["KRW"]}
+                    exchangeRate={assetType === "stocks" ? usdKrwRate : null}
+                    directModeLabel={assetType === "stocks" ? "1주당 가격" : "1개당 가격"}
+                    averagePriceLabel="평균 매수 단가"
+                    averagePricePlaceholder={
+                      assetType === "stocks"
+                        ? "1주당 평균 매수 가격 (USD)"
+                        : "1개당 평균 매수 가격 (KRW)"
+                    }
+                    totalAmountPlaceholder={
+                      assetType === "stocks" ? "총 매수금액 (USD)" : "총 투자금액 (KRW)"
+                    }
+                  />
+                </>
               ) : (
                 <>
                   <div>
@@ -208,7 +245,7 @@ export function EditAssetModal(props: PropType) {
                         assetType === "crypto"
                           ? "0.00000001"
                           : assetType === "stocks"
-                            ? "1"
+                            ? "0.0001"
                             : "0.01"
                       }
                       max={editAction === "REMOVE" ? selectedEditData.amount : undefined}
@@ -222,9 +259,11 @@ export function EditAssetModal(props: PropType) {
                       }`}
                       name="amount"
                       required
-                      onChange={(e) =>
-                        editAction === "ADD" && setAddAmount(parseFloat(e.target.value) || 0)
-                      }
+                      onChange={(e) => {
+                        if (editAction === "ADD") {
+                          setAddAmount(parseFloat(e.target.value) || 0);
+                        }
+                      }}
                     />
                     {editAction === "REMOVE" && (
                       <p className="text-xs text-slate-400 mt-1">
@@ -233,14 +272,58 @@ export function EditAssetModal(props: PropType) {
                     )}
                   </div>
 
+                  {assetType === "stocks" && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">
+                        {editAction === "ADD" ? "매수일" : "매도일"}
+                      </label>
+                      <input
+                        type="date"
+                        name="eventDate"
+                        className={`w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none ${
+                          editAction === "ADD" ? "focus:border-blue-500" : "focus:border-orange-500"
+                        }`}
+                      />
+                    </div>
+                  )}
+
+                  {editAction === "REMOVE" && assetType === "stocks" && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">
+                        매도가 (USD)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        name="sellPrice"
+                        placeholder="주당 매도가 입력"
+                        className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-orange-500 focus:outline-none"
+                      />
+                    </div>
+                  )}
+
                   {editAction === "ADD" && assetType === "crypto" && (
                     <AveragePriceInput amount={addAmount} />
+                  )}
+                  {editAction === "ADD" && assetType === "stocks" && (
+                    <AveragePriceInput
+                      amount={addAmount}
+                      currencyCode="USD"
+                      storageCurrency="USD"
+                      availableCurrencies={["USD", "KRW"]}
+                      exchangeRate={usdKrwRate}
+                      directModeLabel="1주당 가격"
+                      averagePriceLabel="추가 매수 단가"
+                      averagePricePlaceholder="1주당 평균 매수 가격 (USD)"
+                      totalAmountPlaceholder="총 매수금액 (USD)"
+                    />
                   )}
                 </>
               )}
             </>
           )}
         </div>
+
         <div className="flex space-x-3 p-6 border-t border-slate-700">
           <button
             type="button"

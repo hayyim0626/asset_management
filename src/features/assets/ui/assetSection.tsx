@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import type { AssetItem, CategoryList, UserCategory } from "@/entities/assets/api/types";
 import type { AssetType } from "@/entities/assets/types";
-import { formatKrw } from "@/shared/lib/functions";
+import { formatDateTimeKorean, formatKrw, formatUsdCurrency } from "@/shared/lib/functions";
 import { ListButton } from "./listButton";
 import { SvgIcon } from "@/shared/ui";
-import { calcProfitLossPercent, calcProfitLossKrw, calcTotalProfitLoss } from "@/features/assets/lib/profitLoss";
+import { calcCategoryProfitLoss, calcTotalProfitLoss } from "@/features/assets/lib/profitLoss";
 import { ProfitLossDisplay } from "./components/ProfitLossDisplay";
-import toast from "react-hot-toast";
 
 export interface EditAssetType extends UserCategory {
   symbol: string;
@@ -38,34 +37,37 @@ export function AssetSection({
   const [expandedAssets, setExpandedAssets] = useState<Set<string>>(new Set());
 
   const sectionProfitLoss = useMemo(() => {
-    if (type !== "crypto") return null;
-    const result = calcTotalProfitLoss(assets);
+    if (type !== "crypto" && type !== "stocks") return null;
+
+    const result = calcTotalProfitLoss(assets, type);
     if (!result) return null;
+
     const percent =
       result.totalInvestmentKrw > 0
         ? ((result.totalValueKrw - result.totalInvestmentKrw) / result.totalInvestmentKrw) * 100
         : 0;
+
     return { percent, amountKrw: result.totalKrw };
+  }, [assets, type]);
+
+  const staleAssets = useMemo(() => {
+    if (type !== "stocks") return [];
+
+    return assets.filter(
+      (asset) => asset.isStale || asset.quoteStatus === "stale" || asset.quoteStatus === "failed"
+    );
   }, [assets, type]);
 
   const toggleAsset = (id: string) => {
     setExpandedAssets((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
       } else {
-        newSet.add(id);
+        next.add(id);
       }
-      return newSet;
+      return next;
     });
-  };
-
-  const handleClickAddBtn = (type: AssetType) => {
-    if (type === "stocks") {
-      toast("⚠️ 현재 주식 자산관리 서비스는 준비중이에요!");
-      return;
-    }
-    openAddModal(type);
   };
 
   return (
@@ -74,6 +76,9 @@ export function AssetSection({
         <div>
           <h3 className="text-lg font-semibold text-white">{title}</h3>
           <p className="text-2xl font-bold text-blue-400 mt-1">{formatKrw(totalValue.krw)}</p>
+          {type === "stocks" && totalValue.usd > 0 && (
+            <p className="text-sm text-slate-400 mt-1">{formatUsdCurrency(totalValue.usd)}</p>
+          )}
           {sectionProfitLoss && (
             <div className="mt-1">
               <ProfitLossDisplay
@@ -84,16 +89,23 @@ export function AssetSection({
           )}
         </div>
         <button
-          onClick={() => handleClickAddBtn(type)}
+          onClick={() => openAddModal(type)}
           className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg transition-colors cursor-pointer"
         >
           <SvgIcon name="plus" className="w-5 h-5 text-white" />
         </button>
       </div>
 
+      {type === "stocks" && staleAssets.length > 0 && (
+        <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          최신 시세를 불러오지 못해 마지막으로 저장된 가격을 표시하고 있습니다.
+        </div>
+      )}
+
       <div className="space-y-3">
         {assets.map((asset, index) => {
           const isExpanded = expandedAssets.has(asset.id);
+
           return (
             <div key={index} className="bg-slate-800/50 rounded-lg border border-slate-700/50">
               <ListButton
@@ -104,21 +116,31 @@ export function AssetSection({
               />
               <div
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                  isExpanded ? "max-h-[520px] opacity-100" : "max-h-0 opacity-0"
                 }`}
               >
                 {asset.categories && asset.categories.length > 0 && (
                   <div className="px-4 pb-3 space-y-2 border-t border-slate-700/50 pt-3">
                     {asset.categories.map((el) => {
                       const name = category.find((cat) => cat.code === el.category)?.name;
-                      const catPercent =
-                        type === "crypto"
-                          ? calcProfitLossPercent(asset.currentPrice.krw, el.averagePrice)
-                          : null;
-                      const catAmountKrw =
-                        type === "crypto"
-                          ? calcProfitLossKrw(asset.currentPrice.krw, el.averagePrice, el.amount)
-                          : null;
+                      const categoryProfitLoss = calcCategoryProfitLoss(asset, el, type);
+                      const averagePriceLabel =
+                        type === "stocks"
+                          ? el.averagePriceUsd ?? el.averagePrice
+                            ? `${formatUsdCurrency(el.averagePriceUsd ?? el.averagePrice ?? 0)} avg`
+                            : null
+                          : el.averagePrice
+                            ? `${formatKrw(el.averagePrice)} avg`
+                            : null;
+                      const totalValueLabel =
+                        type === "stocks"
+                          ? `${formatKrw(el.amount * asset.currentPrice.krw)} / ${formatUsdCurrency(
+                              el.amount * asset.currentPrice.usd
+                            )}`
+                          : formatKrw(el.amount * asset.currentPrice.krw);
+                      const eventDateLabel =
+                        type === "stocks" ? formatDateTimeKorean(el.eventDate) : null;
+
                       return (
                         <div
                           key={el.id}
@@ -130,18 +152,23 @@ export function AssetSection({
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="text-right">
-                              <p className="text-slate-300 text-sm">
-                                {formatKrw(el.amount * asset.currentPrice.krw)}
-                              </p>
+                              <p className="text-slate-300 text-sm">{totalValueLabel}</p>
                               <p className="text-slate-400 text-xs">
                                 {type === "cash"
                                   ? `${el.amount.toLocaleString()} ${asset.symbol}`
                                   : `${el.amount} ${asset.symbol}`}
                               </p>
-                              {catPercent != null && catAmountKrw != null && (
+                              {averagePriceLabel && (
+                                <p className="text-[11px] text-slate-500">{averagePriceLabel}</p>
+                              )}
+                              {eventDateLabel && (
+                                <p className="text-[11px] text-slate-500">기준일 {eventDateLabel}</p>
+                              )}
+                              {categoryProfitLoss && (
                                 <ProfitLossDisplay
-                                  percent={catPercent}
-                                  amountKrw={catAmountKrw}
+                                  percent={categoryProfitLoss.percent}
+                                  amountKrw={categoryProfitLoss.amountKrw}
+                                  amountUsd={categoryProfitLoss.amountUsd}
                                 />
                               )}
                             </div>
@@ -158,7 +185,7 @@ export function AssetSection({
                             >
                               <SvgIcon
                                 name="edit"
-                                className="text-slate-500 hover:text-slate-600 transition-colors"
+                                className="text-slate-500 hover:text-slate-300 transition-colors"
                               />
                             </button>
                           </div>
@@ -177,7 +204,7 @@ export function AssetSection({
         <div className="text-center py-8 text-slate-400">
           <p>등록된 {title.toLowerCase()}이 없습니다.</p>
           <button
-            onClick={() => handleClickAddBtn(type)}
+            onClick={() => openAddModal(type)}
             className="mt-4 text-blue-400 hover:text-blue-300 text-sm"
           >
             + 첫 번째 자산 추가하기
