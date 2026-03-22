@@ -1,11 +1,10 @@
-import { http, HttpResponse } from "msw";
-
-import { default_url } from "@/shared/api/consts";
-import { server } from "@/shared/test/msw/server";
-
 import { getCoins } from "./getCoins";
 
 describe("getCoins functional test", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("성공 응답을 반환한다", async () => {
     const payload = {
       success: true,
@@ -13,9 +12,12 @@ describe("getCoins functional test", () => {
       error: null
     };
 
-    server.use(
-      http.get(`${default_url}/coins`, () => {
-        return HttpResponse.json(payload);
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
       })
     );
 
@@ -25,9 +27,12 @@ describe("getCoins functional test", () => {
   });
 
   it("HTTP 오류를 실패 응답으로 변환한다", async () => {
-    server.use(
-      http.get(`${default_url}/coins`, () => {
-        return HttpResponse.json({ message: "Server error" }, { status: 500 });
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ message: "Server error" }), {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json"
+        }
       })
     );
 
